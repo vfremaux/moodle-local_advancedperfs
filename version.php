@@ -17,7 +17,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 $plugin->version  = 2015070702;   // The (date) version of this plugin
-$plugin->requires = 2014110400;   // Requires this Moodle version
+$plugin->requires = 2015050500;   // Requires this Moodle version
 $plugin->component  = 'local_advancedperfs';   // The (date) version of this plugin
-$plugin->release = '2.8.0 (Build 2015070702)';
-$plugin->maturity = MATURITY_BETA;
+$plugin->release = '2.9.0 (Build 2015070702)';
+$plugin->maturity = MATURITY_RC;
