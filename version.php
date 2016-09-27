@@ -14,13 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Version details.
+ *
+ * @package    local_advancedperfs
+ * @category   local
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright  2010 onwards Valery Fremaux <valery.fremaux@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL
+ */
+
 defined('MOODLE_INTERNAL') || die;
 
 $plugin->version  = 2015070702;   // The (date) version of this plugin
-$plugin->requires = 2015111100;   // Requires this Moodle version
+$plugin->requires = 2016051900;   // Requires this Moodle version
 $plugin->component  = 'local_advancedperfs';   // The (date) version of this plugin
-$plugin->release = '3.0.0 (Build 2015070702)';
+$plugin->release = '3.1.0 (Build 2015070702)';
 $plugin->maturity = MATURITY_RC;
 
-// Non moodle attributes
-$plugin->codeincrement = '3.0.0000';
+// Non moodle attributes.
+$plugin->codeincrement = '3.1.0000';
