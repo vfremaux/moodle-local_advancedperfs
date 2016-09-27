@@ -21,3 +21,6 @@ $plugin->requires = 2015111100;   // Requires this Moodle version
 $plugin->component  = 'local_advancedperfs';   // The (date) version of this plugin
 $plugin->release = '3.0.0 (Build 2015070702)';
 $plugin->maturity = MATURITY_RC;
+
+// Non moodle attributes
+$plugin->codeincrement = '3.0.0000';
