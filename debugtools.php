@@ -190,7 +190,7 @@ function debug_trace_open($str) {
     global $TRACE, $CFG;
 
     if (!is_null($TRACE)) {
-        fputs($TRACE, @$CFG->transID." ------- ". userdate(time())." -------\n".$str."\n");
+        fputs($TRACE, @$CFG->transID." ------- ". date('Y-m-d H:i', time())." -------\n".$str."\n");
     }
 }
 

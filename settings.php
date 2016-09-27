@@ -16,20 +16,18 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$hasconfig = false;
+// settings default init
 if (is_dir($CFG->dirroot.'/local/adminsettings')) {
     // Integration driven code 
-    if (has_capability('local/adminsettings:nobody', context_system::instance())) {
-        $hasconfig = true;
-    }
+    require_once($CFG->dirroot.'/local/adminsettings/lib.php');
+    list($hasconfig, $hassiteconfig, $capability) = local_adminsettings_access();
 } else {
     // Standard Moodle code
-    if ($hassiteconfig) {
-        $hasconfig = true;
-    }
+    $capability = 'moodle/site:config';
+    $hasconfig = $hassiteconfig = has_capability($capability, context_system::instance());
 }
 
-if ($hasconfig) {
+if ($hassiteconfig) {
     $settings = new admin_settingpage('local_timebenches', get_string('pluginname', 'local_advancedperfs'));
     $settings->add(new admin_setting_configcheckbox('timebenches', get_string('timebenches', 'local_advancedperfs'), get_string('timebenchesdesc', 'local_advancedperfs'), ''));
     $ADMIN->add('development', $settings);
