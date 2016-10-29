@@ -15,22 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details.
+ * Definition of advancedperfs.
  *
- * @package    local_advancedperfs
- * @category   local
- * @author     Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright  2010 onwards Valery Fremaux <valery.fremaux@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL
+ * @package   local_advancedperfs
+ * @category  task
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2016111901;   // The (date) version of this plugin.
-$plugin->requires = 2014050800;   // Requires this Moodle version.
-$plugin->component  = 'local_advancedperfs';   // The (date) version of this plugin.
-$plugin->release = '2.7.0 (Build 2015070702)';
-$plugin->maturity = MATURITY_RC;
-
-// Non moodle attributes.
-$plugin->codeincrement = '2.7.0000';
+$tasks = array(
+    array(
+        'classname' => 'local_advancedperfs\task\monitor_task',
+        'blocking' => 0,
+        'minute' => '30',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
+    )
+);

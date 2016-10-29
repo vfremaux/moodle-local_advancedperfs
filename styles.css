@@ -1,0 +1,13 @@
+
+.advancedperfs-time-benches {
+    font-size:80%;
+    padding:20px;
+}
+
+.perfs-visible {
+    display:blocks;
+}
+
+.perfs-hidden {
+    display:none;
+}
