@@ -17,20 +17,21 @@
 /**
  * Version details.
  *
- * @package     local_advancedperfs
- * @category    local
- * @author      Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright   2008 onwards Valery Fremaux (http://www.mylearningfactory.com)
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_advancedperfs
+ * @category   local
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright  2010 onwards Valery Fremaux <valery.fremaux@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version  = 2015070702;   // The (date) version of this plugin.
+$plugin->version  = 2016111901;   // The (date) version of this plugin.
 $plugin->requires = 2014110400;   // Requires this Moodle version.
-$plugin->component  = 'local_advancedperfs';   // The (date) version of this plugin.
-$plugin->release = '2.8.0 (Build 2015070702)';
-$plugin->maturity = MATURITY_BETA;
+$plugin->component  = 'local_advancedperfs';   // The plugin name.
+$plugin->release = '2.8.0 (Build 2016111901)';
+$plugin->maturity = MATURITY_RC;
+$plugin->dependencies = array('local_vflibs' => 2016081100);
 
 // Non moodle attributes.
-$plugin->codeincrement = '2.8.0000';
+$plugin->codeincrement = '2.8.0001';
