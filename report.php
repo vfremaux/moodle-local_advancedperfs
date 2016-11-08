@@ -53,14 +53,6 @@ echo $OUTPUT->header();
 
 // Report global indicators.
 
-$renderer->load_data();
-
-if ($renderer->is_empty()) {
-    echo $OUTPUT->notification(get_string('noslowpages', 'local_advancedperfs'));
-    echo $OUTPUT->footer();
-    die;
-}
-
 echo $renderer->tabs($view);
 
 echo $renderer->globals();
@@ -97,7 +89,6 @@ switch ($view) {
         break;
 
     case 'urls';
-        echo $renderer->url_ranking_by_occurrence();
         break;
 
 }

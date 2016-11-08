@@ -52,15 +52,8 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return print_tabs($rows, $view, null, null, true);
     }
 
-    public function load_data() {
+    protected function load_data() {
         global $DB;
-
-        $config = get_config('local_advancedperfs');
-
-        if (!empty($config->slowpageexcludes)) {
-            $this->excludepatterns = explode("\n", $config->slowpageexcludes);
-        }
-        $this->slowpageexcludes[] = 'local\\/advancedperfs';
 
         if (!isset($this->slowpages)) {
             $this->slowpages = $DB->get_records('local_advancedperfs_slowp', array(), 'timecreated');
@@ -80,19 +73,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
                 $this->maxmem = 0;
                 $this->minindb = 10000000;
                 $this->maxindb = 0;
-                foreach ($this->slowpages as $pid => $p) {
-
-                    if (!empty($this->excludepatterns)) {
-                        foreach ($this->excludepatterns as $ex) {
-                            $ex = trim($ex);
-                            if (preg_match('/'.$ex.'/', $p->url)) {
-                                // Discard unwanted pages from any graphs.
-                                unset($this->slowpages[$pid]);
-                                continue 2;
-                            }
-                        }
-                    }
-
+                foreach ($this->slowpages as $p) {
                     $this->mintime = min($this->mintime, $p->timespent);
                     $this->maxtime = max($this->maxtime, $p->timespent);
                     $this->mindbcalls = min($this->mindbcalls, $p->dbcalls);
@@ -176,7 +157,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
 
         $str .= '<div class="perfs-row">';
         $str .= '<div class="perfs-cell perfs-big globals">';
-        $str .= 0 + $this->slowcount;
+        $str .= $this->slowcount;
         $str .= '</div>';
         $str .= '<div class="perfs-cell globals">';
         $str .= '<div class="perfs-big">'.userdate($this->first).'</div>';
@@ -208,7 +189,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    // Prints a bargraph of distribution.
+    // Prints a bargraph of distribution
     public function time_dist_graph($qdiv = 50) {
         global $DB, $PAGE;
 
@@ -256,7 +237,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    // Prints a bargraph of distribution.
+    // Prints a bargraph of distribution
     public function top_url_freq_graph($qdiv = 50) {
     }
 
@@ -636,63 +617,5 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         $str .= '</div>';
 
         return $str;
-    }
-
-    public function url_ranking_by_occurrence() {
-        global $CFG, $PAGE;
-
-        $this->load_data();
-
-        if (empty($this->slowpages)) {
-            return;
-        }
-
-        $rank = array();
-        foreach ($this->slowpages as $p) {
-            $url = str_replace($CFG->wwwroot, '', $p->url);
-            $url = preg_replace('/\\?.*/', '', $url);
-            @$rank[$url]++;
-        }
-
-        asort($rank);
-        array_reverse($rank);
-
-        $i = 0;
-        $jqwdata = array();
-        foreach ($rank as $url => $rk) {
-            $rec = new StdClass();
-            $rec->url = $url;
-            $rec->num = $rk;
-            $jqwdata[] = $rec;
-            $i++;
-            if ($i >= 50) {
-                // Limit the graph on screen.
-                break;
-            }
-        }
-
-        $title = get_string('urlsbyfreq', 'local_advancedperfs');
-
-        $options['id'] = uniqid();
-        $options['desc'] = '';
-        $options['xunit'] = ' Q';
-        $options['xlabel'] = ' Slow pages';
-        $options['seriename'] = ' ';
-        $options['width'] = 900;
-        $options['xflip'] = 'true';
-        $options['yflip'] = 'true';
-        $options['tickwidth'] = 400;
-        $options['height'] = 150 + count($jqwdata) * 22;
-        $options['direction'] = 'horizontal';
-
-        $renderer = $PAGE->get_renderer('local_vflibs');
-        $str = $renderer->jqw_bar_chart($title, $jqwdata, $options, 'local_advancedperfs');
-
-        return $str;
-
-    }
-
-    public function is_empty() {
-        return empty($this->slowpages);
     }
 }
