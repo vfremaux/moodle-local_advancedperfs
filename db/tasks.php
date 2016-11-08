@@ -17,9 +17,9 @@
 /**
  * Definition of advancedperfs.
  *
- * @package   local_advancedperfs
- * @category  task
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     local_advancedperfs
+ * @category    task
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();

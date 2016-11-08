@@ -391,7 +391,6 @@ class performance_monitor {
         $pix = '<img src="'.$OUTPUT->pix_url('t/viewdetails').'" />';
         $pixlink = '<a id="perfs-pref-toggler" href="Javascript:perfs_panel_change_state('.$tostate.')">'.$pix.'</a>';
 
-        // $str .= $OUTPUT->heading(get_string('perfs', 'local_advancedperfs'));
         $str .= '<ul class="nav-tabs"><li>'.get_string('perfs', 'local_advancedperfs').' '.$pixlink.'</li></ul>';
 
         $str .= '<div id="timebenches" class="'.$initialclass.'">';

@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * @package     local_advancedperfs
+ * @subpackage  local
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
+ * @copyright   (C) 2016 onwards Valery Fremaux
+ */
+
 defined('MOODLE_INTERNAL') || die();
 
 function xmldb_local_advancedperfs_upgrade($oldversion = 0) {
@@ -25,11 +33,11 @@ function xmldb_local_advancedperfs_upgrade($oldversion = 0) {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2016111901) {
-        // Define table mplayer_userdata.
-        // Define table local_shop to be created.
+        // Define table.
+        // Define table to be created.
         $table = new xmldb_table('local_advancedperfs_slowp');
 
-        // Adding fields to table local_shop.
+        // Adding fields to table.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
         $table->add_field('timespent', XMLDB_TYPE_NUMBER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
@@ -39,13 +47,13 @@ function xmldb_local_advancedperfs_upgrade($oldversion = 0) {
         $table->add_field('url', XMLDB_TYPE_CHAR, '255', null, null, null, null);
         $table->add_field('memused', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
 
-        // Adding keys to table learningtimecheck_comment.
+        // Adding keys to table.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
 
-        // Adding indexes to table learningtimecheck_comment.
+        // Adding indexes to table.
         $table->add_index('ix_user', XMLDB_INDEX_NOTUNIQUE, array('userid'));
 
-        // Add field lastuserid to track the last writer in a page.
+        // Add field to track the last writer in a page.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }

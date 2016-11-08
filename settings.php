@@ -16,13 +16,13 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-// settings default init
+// Settings default init.
 if (is_dir($CFG->dirroot.'/local/adminsettings')) {
-    // Integration driven code 
+    // Integration driven code.
     require_once($CFG->dirroot.'/local/adminsettings/lib.php');
     list($hasconfig, $hassiteconfig, $capability) = local_adminsettings_access();
 } else {
-    // Standard Moodle code
+    // Standard Moodle code.
     $capability = 'moodle/site:config';
     $hasconfig = $hassiteconfig = has_capability($capability, context_system::instance());
 }
@@ -64,6 +64,11 @@ if ($hassiteconfig) {
     $label = get_string('configverylongpagethreshold', 'local_advancedperfs');
     $desc = get_string('configverylongpagethreshold_desc', 'local_advancedperfs');
     $settings->add(new admin_setting_configtext($key, $label, $desc, 30));
+
+    $key = 'local_advancedperfs/slowpageexcludes';
+    $label = get_string('configslowpageexcludes', 'local_advancedperfs');
+    $desc = get_string('configslowpageexcludes_desc', 'local_advancedperfs');
+    $settings->add(new admin_setting_configtextarea($key, $label, $desc, 0));
 
     $key = 'local_advancedperfs/userstosendto';
     $label = get_string('configuserstosendto', 'local_advancedperfs');
