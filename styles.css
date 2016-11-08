@@ -1,0 +1,35 @@
+
+.advancedperfs-time-benches {
+    font-size:80%;
+    padding:20px;
+}
+
+.perfs-visible {
+    display:blocks;
+}
+
+.perfs-hidden {
+    display:none;
+}
+
+.perfs-container {
+    display:table;
+}
+
+.perfs-row {
+    display:table-row;
+}
+
+.perfs-cell {
+    display:table-cell;
+    padding:10px;
+}
+
+.perfs-cell.globals {
+    text-align:center;
+}
+
+.perfs-big {
+    font-size:2.3em;
+    line-height:2em;
+}

@@ -15,31 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Definition of advancedperfs.
+ *
  * @package     local_advancedperfs
- * @subpackage  local
- * @author      Valery Fremaux <valery.fremaux@gmail.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
- * @copyright   (C) 2016 onwards Valery Fremaux
+ * @category    task
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die;
 
-$capabilities = array(
-    'local/advancedperfs:view' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
+defined('MOODLE_INTERNAL') || die();
 
-    /**
-     * People having this capability will have debug on
-     */
-    'local/advancedperfs:hasdebugrole' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
+$tasks = array(
+    array(
+        'classname' => 'local_advancedperfs\task\monitor_task',
+        'blocking' => 0,
+        'minute' => '30',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
+    )
 );

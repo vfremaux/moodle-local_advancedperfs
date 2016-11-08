@@ -14,18 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-if (!defined('MOODLE_EARLY_INTERNAL')) {
-    defined('MOODLE_INTERNAL') || die('');
-}
-
 /**
  *
- * @package performance
- * @subpackage local
- * @author     Valery Fremaux <valery.fremaux@club-internet.fr>
- * @version Moodle 2.x
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL
- * @copyright  (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
+ * @package     local_advancedperfs
+ * @subpackage  local
+ * @author      Valery Fremaux <valery.fremaux@club-internet.fr>
+ * @version     Moodle 2.x
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
+ * @copyright   (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
  *
  * this file contains a set of usefull debug tools for production
  *
@@ -33,6 +29,9 @@ if (!defined('MOODLE_EARLY_INTERNAL')) {
  *
  * functions should all start with the debug_ prefix.
  */
+if (!defined('MOODLE_EARLY_INTERNAL')) {
+    defined('MOODLE_INTERNAL') || die('');
+}
 
 function debug_print_for_user($user, $text) {
     global $USER;
@@ -190,7 +189,7 @@ function debug_trace_open($str) {
     global $TRACE, $CFG;
 
     if (!is_null($TRACE)) {
-        fputs($TRACE, @$CFG->transID." ------- ". userdate(time())." -------\n".$str."\n");
+        fputs($TRACE, @$CFG->transID." ------- ". date('Y-m-d H:i', time())." -------\n".$str."\n");
     }
 }
 
