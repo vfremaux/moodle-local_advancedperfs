@@ -70,6 +70,7 @@ $string['timeline'] = 'Calendrier des pages lentes (nombre par jour)';
 $string['timerelmem'] = 'Temps passé vs. mémoire consomée';
 $string['timespent'] = 'Temps de calcul';
 $string['urls'] = 'Urls';
+$string['urlsbyfreq'] = 'Fréquence par Url de base';
 $string['users'] = 'Utilisateurs';
 $string['worstday'] = 'Jour le plus lent';
 $string['numusersaffected'] = 'Nombre d\'utilisateurs affectés';

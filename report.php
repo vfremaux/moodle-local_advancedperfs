@@ -89,6 +89,7 @@ switch ($view) {
         break;
 
     case 'urls';
+        echo $renderer->url_ranking_by_occurrence();
         break;
 
 }
