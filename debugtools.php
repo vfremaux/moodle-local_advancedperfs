@@ -119,7 +119,7 @@ function debug_track_capabilities($userid, $capnames) {
     if ($USER->id == $userid) {
         $roles = $DB->get_records_menu('role', array(), 'name', 'id,name');
         $access = &$USER->access;
-        echo "<div class=\"debug\">";
+        echo '<div class="debug">';
         echo "<b>Capability track only for " . fullname($USER).'</b><br/>';
 
         if (is_array($capnames)) {
@@ -157,28 +157,28 @@ function debug_track_capabilities($userid, $capnames) {
  * some piece of code. Do NEVER use in production systems unless hot case urgent tracking
  */
 function debug_open_trace() {
-    global $CFG, $TRACE, $OUTPUT;
+    global $CFG, $OUTPUT;
 
-    if (!empty($CFG->trace) && is_null($TRACE)) {
-        $TRACE = @fopen($CFG->trace, 'a');
+    if (!empty($CFG->trace) && empty($CFG->tracehandle)) {
+        $CFG->tracehandle = @fopen($CFG->trace, 'a');
     }
-    if (!empty($CFG->trace) && !$TRACE) {
+    if (!empty($CFG->trace) && !$CFG->tracehandle) {
         if (debugging()) {
             echo $OUTPUT->notification('Trace could not be open at '.$CFG->trace);
         }
     }
-    return !is_null($TRACE);
+    return !is_null(@$CFG->tracehandle);
 }
 
 /**
  * closes an open trace
  */
 function debug_close_trace() {
-    global $TRACE;
+    global $CFG;
 
-    if (!is_null($TRACE)) {
-        fclose($TRACE);
-        $TRACE = null;
+    if (!is_null($CFG->tracehandle)) {
+        fclose($CFG->tracehandle);
+        $CFG->tracehandle = null;
     }
 }
 
@@ -186,10 +186,10 @@ function debug_close_trace() {
  * outputs into an open trace (ligther than debug_trace)
  */
 function debug_trace_open($str) {
-    global $TRACE, $CFG;
+    global $CFG;
 
-    if (!is_null($TRACE)) {
-        fputs($TRACE, @$CFG->transID." ------- ". date('Y-m-d H:i', time())." -------\n".$str."\n");
+    if (!is_null($CFG->tracehandle)) {
+        fputs($CFG->tracehandle, @$CFG->transID." ------- ". date('Y-m-d H:i', time())." -------\n".$str."\n");
     }
 }
 
@@ -197,9 +197,9 @@ function debug_trace_open($str) {
  * write to the trace
  */
 function debug_trace($str) {
-    global $TRACE;
+    global $CFG;
 
-    if (!is_null($TRACE)) {
+    if (!empty($CFG->tracehandle)) {
         debug_trace_open($str);
     } else {
         if (debug_open_trace()) {
@@ -213,14 +213,11 @@ function debug_trace($str) {
  * write to the trace
  */
 function debug_dump($var) {
-    global $TRACE;
+    global $CFG;
 
-    ob_start();
-    var_dump($var);
-    $dump = ob_get_contents();
-    ob_end_clean();
+    $dump = print_r($var, true);
 
-    if (!is_null($TRACE)) {
+    if (!is_null($CFG->tracehandle)) {
         debug_trace_open($dump);
     } else {
         if (debug_open_trace()) {
