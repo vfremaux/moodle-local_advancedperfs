@@ -507,7 +507,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    protected build_graph($dist) {
+    protected function build_graph($dist) {
 
         // Fill null ranges.
         for ($i = 0; $i < $bdiv; $i++) {
