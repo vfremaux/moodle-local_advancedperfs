@@ -63,6 +63,7 @@ class performance_monitor {
         // Use internals as some API function might not be available yet.
         $this->internal_punchin('overall', __FILE__, __LINE__);
         $this->internal_punchin('init', __FILE__, __LINE__);
+        $this->internal_punchin('setup', __FILE__, __LINE__);
         $this->isslowpage = false;
     }
 
@@ -135,7 +136,6 @@ class performance_monitor {
         if (!is_array($this->perfs)) {
             echo $OUTPUT->notification("Perf system not initialized");
         }
-
         $this->internal_punchin($category, $file, $line);
 
     }
@@ -146,7 +146,7 @@ class performance_monitor {
      * @param string $file feed this with __FILE__
      * @param string $line feed this with __LINE__
      */
-    private function internal_punchin($category, $file = '', $line = '') {
+    public function internal_punchin($category, $file = '', $line = '') {
         global $CFG;
 
         // Discovering new categories through a first punch in.
@@ -155,7 +155,7 @@ class performance_monitor {
             $this->init_cat($category);
         }
 
-        list($usec, $sec) = explode(' ',microtime());
+        list($usec, $sec) = explode(' ', microtime());
         $tick = (float)$sec + (float)$usec;
         $this->perfs[$category]->in = $tick;
         $this->perfs[$category]->state = PUNCHED_IN;
@@ -280,7 +280,7 @@ class performance_monitor {
             $slowpage->timespent = $duration;
             $slowpage->dbcalls = $this->perfs['dbcalls']->occurrences;
             $slowpage->timeindb = $this->perfs['dbcalls']->total;
-            $slowpage->url = ''.shorten_text($PAGE->url, 255);
+            $slowpage->url = str_replace($CFG->wwwroot, '', $PAGE->url);
             $slowpage->memused = memory_get_peak_usage(true);
             $DB->insert_record('local_advancedperfs_slowp', $slowpage);
 
@@ -388,7 +388,7 @@ class performance_monitor {
         $tostate = ($userpref) ? 0 : 1;
 
         $str = '<div class="advancedperfs-time-benches">';
-        $pix = '<img src="'.$OUTPUT->pix_url('t/viewdetails').'" />';
+        $pix = '<img src="'.$OUTPUT->pix_url('viewdetails', 'local_advancedperfs').'" />';
         $pixlink = '<a id="perfs-pref-toggler" href="Javascript:perfs_panel_change_state('.$tostate.')">'.$pix.'</a>';
 
         $str .= '<ul class="nav-tabs"><li>'.get_string('perfs', 'local_advancedperfs').' '.$pixlink.'</li></ul>';
@@ -466,6 +466,11 @@ class performance_monitor {
     }
 }
 
+function punchin($in = '', $file = '', $line = '') {
+    $pm = performance_monitor::instance();
+    $pm->punchin($in, $file, $line);
+}
+
 function punchout($out = '', $in = '', $file = '', $line = '') {
     $pm = performance_monitor::instance();
 
@@ -485,7 +490,6 @@ function advancedperfs_send_alert($faulttype, $notification) {
 
     $targets = array();
     if (empty($userstosendto)) {
-        echo('Sending to default targets'."\n");
         $targets = $DB->get_records_list('user', 'id', explode(',', $CFG->siteadmins));
     } else {
         $usernames = explode(',', $userstosendto);
@@ -495,15 +499,12 @@ function advancedperfs_send_alert($faulttype, $notification) {
 
             if (strpos($un, '@') !== false) {
                 // This is an email.
-                echo('Targetting cronmon to email target '.$un."\n");
                 $u = $DB->get_record('user', array('email' => $un, 'mnethostid' => $CFG->mnet_localhost_id));
             } else if (is_numeric($un)) {
                 // This is an id.
-                echo('Targetting cronmon to id target '.$un."\n");
                 $u = $DB->get_record('user', array('id' => $un));
             } else {
                 // This is a username.
-                echo('Targetting cronmon to username target '.$un."\n");
                 $u = $DB->get_record('user', array('username' => $un));
             }
             if ($u) {
