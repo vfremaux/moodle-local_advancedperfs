@@ -65,6 +65,11 @@ if ($hassiteconfig) {
     $desc = get_string('configverylongpagethreshold_desc', 'local_advancedperfs');
     $settings->add(new admin_setting_configtext($key, $label, $desc, 30));
 
+    $key = 'local_advancedperfs/slowpageexcludes';
+    $label = get_string('configslowpageexcludes', 'local_advancedperfs');
+    $desc = get_string('configslowpageexcludes_desc', 'local_advancedperfs');
+    $settings->add(new admin_setting_configtextarea($key, $label, $desc, 'local\\/advancedperfs'));
+
     $key = 'local_advancedperfs/userstosendto';
     $label = get_string('configuserstosendto', 'local_advancedperfs');
     $desc = get_string('configuserstosendto_desc', 'local_advancedperfs');
