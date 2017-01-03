@@ -14,4 +14,11 @@
     <version>2.7</version>
     <licenseversion>v.3</licenseversion>
   </library>
+  <library>
+    <location>extra</location>
+    <name>Extra derrogating Moodle</name>
+    <license>GPL</license>
+    <version></version>
+    <licenseversion>v.3</licenseversion>
+  </library>
 </libraries>

@@ -460,22 +460,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             @$dist[floor($p->dbcalls / $bwidth)]++;
         }
 
-        // Fill null ranges.
-        for ($i = 0; $i < $bdiv; $i++) {
-            if (!isset($dist[$i])) {
-                $dist[$i] = 0;
-            }
-        }
-
-        $graph = array();
-        // Shift keys to band midrange.
-        for ($i = 0; $i < $bdiv; $i++) {
-            $key = ($bwidth / 2) + ($i * $bwidth);
-            $rec = new StdClass;
-            $rec->ratio = round($key);
-            $rec->num = $dist[$i];
-            $graph[] = $rec;
-        }
+        $graph = $this->build_graph($dist);
 
         $title = get_string('dbquerydist', 'local_advancedperfs');
         $options['id'] = uniqid();
@@ -507,6 +492,23 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             @$dist[floor($dbratio / $bwidth)]++;
         }
 
+        $graph = $this->build_graph($dist);
+
+        $title = get_string('dbratiodist', 'local_advancedperfs');
+        $options['id'] = uniqid();
+        $options['desc'] = '';
+        $options['width'] = 700;
+        $options['height'] = 500;
+
+        $title = get_string('dbratiodist', 'local_advancedperfs');
+        $renderer = $PAGE->get_renderer('local_vflibs');
+        $str = $renderer->jqw_bar_chart($title, $graph, $options, 'local_advancedperfs');
+
+        return $str;
+    }
+
+    protected function build_graph($dist) {
+
         // Fill null ranges.
         for ($i = 0; $i < $bdiv; $i++) {
             if (!isset($dist[$i])) {
@@ -524,17 +526,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             $graph[] = $rec;
         }
 
-        $title = get_string('dbratiodist', 'local_advancedperfs');
-        $options['id'] = uniqid();
-        $options['desc'] = '';
-        $options['width'] = 700;
-        $options['height'] = 500;
-
-        $title = get_string('dbratiodist', 'local_advancedperfs');
-        $renderer = $PAGE->get_renderer('local_vflibs');
-        $str = $renderer->jqw_bar_chart($title, $graph, $options, 'local_advancedperfs');
-
-        return $str;
+        return $graph;
     }
 
     public function top_affected_users() {
@@ -543,7 +535,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         $this->load_data();
 
         if (!empty($this->slowpages)) {
-            foreach($this->slowpages as $p) {
+            foreach ($this->slowpages as $p) {
                 @$dist[$p->userid]++;
             }
         }
