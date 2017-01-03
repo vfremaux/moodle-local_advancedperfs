@@ -52,7 +52,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return print_tabs($rows, $view, null, null, true);
     }
 
-    protected function load_data() {
+    public function load_data() {
         global $DB;
 
         $config = get_config('local_advancedperfs');
@@ -139,7 +139,11 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
 
         $logsize = $DB->count_records_select('logstore_standard_log', " timecreated > ? AND origin = 'web' ", array($this->first));
 
-        $slowpagesratio = $this->slowcount / $logsize;
+        if ($logsize) {
+            $slowpagesratio = $this->slowcount / $logsize;
+        } else {
+            $slowpagesratio = 0;
+        }
 
         $sql = "
             SELECT DISTINCT
@@ -176,7 +180,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
 
         $str .= '<div class="perfs-row">';
         $str .= '<div class="perfs-cell perfs-big globals">';
-        $str .= $this->slowcount;
+        $str .= 0 + $this->slowcount;
         $str .= '</div>';
         $str .= '<div class="perfs-cell globals">';
         $str .= '<div class="perfs-big">'.userdate($this->first).'</div>';
@@ -271,8 +275,6 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             $options['xmax'] = 0;
             foreach ($graphdata as $d) {
                 $moused = round($d->memused / 1000000, 2);
-                $url = str_replace($CFG->wwwroot, '', $d->url); // Remove base domain.
-                $url = preg_replace('/\\?.*/', '', $url); // Remove query string.
                 if (!array_key_exists($url, $data)) {
                     // Keep highest.
                     $ticks[] = "'".$url."'";
@@ -458,22 +460,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             @$dist[floor($p->dbcalls / $bwidth)]++;
         }
 
-        // Fill null ranges.
-        for ($i = 0; $i < $bdiv; $i++) {
-            if (!isset($dist[$i])) {
-                $dist[$i] = 0;
-            }
-        }
-
-        $graph = array();
-        // Shift keys to band midrange.
-        for ($i = 0; $i < $bdiv; $i++) {
-            $key = ($bwidth / 2) + ($i * $bwidth);
-            $rec = new StdClass;
-            $rec->ratio = round($key);
-            $rec->num = $dist[$i];
-            $graph[] = $rec;
-        }
+        $graph = $this->build_graph($dist);
 
         $title = get_string('dbquerydist', 'local_advancedperfs');
         $options['id'] = uniqid();
@@ -505,6 +492,23 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             @$dist[floor($dbratio / $bwidth)]++;
         }
 
+        $graph = $this->build_graph($dist);
+
+        $title = get_string('dbratiodist', 'local_advancedperfs');
+        $options['id'] = uniqid();
+        $options['desc'] = '';
+        $options['width'] = 700;
+        $options['height'] = 500;
+
+        $title = get_string('dbratiodist', 'local_advancedperfs');
+        $renderer = $PAGE->get_renderer('local_vflibs');
+        $str = $renderer->jqw_bar_chart($title, $graph, $options, 'local_advancedperfs');
+
+        return $str;
+    }
+
+    protected function build_graph($dist) {
+
         // Fill null ranges.
         for ($i = 0; $i < $bdiv; $i++) {
             if (!isset($dist[$i])) {
@@ -522,29 +526,21 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             $graph[] = $rec;
         }
 
-        $title = get_string('dbratiodist', 'local_advancedperfs');
-        $options['id'] = uniqid();
-        $options['desc'] = '';
-        $options['width'] = 700;
-        $options['height'] = 500;
-
-        $title = get_string('dbratiodist', 'local_advancedperfs');
-        $renderer = $PAGE->get_renderer('local_vflibs');
-        $str = $renderer->jqw_bar_chart($title, $graph, $options, 'local_advancedperfs');
-
-        return $str;
+        return $graph;
     }
 
     public function top_affected_users() {
-        global $DB;
+        global $DB, $CFG;
 
         $this->load_data();
 
         if (!empty($this->slowpages)) {
-            foreach($this->slowpages as $p) {
+            foreach ($this->slowpages as $p) {
                 @$dist[$p->userid]++;
             }
         }
+
+        $siteadmins = explode(',', $CFG->siteadmins);
 
         asort($dist);
         array_reverse($dist);
@@ -557,23 +553,79 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
 
         $i = 0;
         foreach ($dist as $userid => $sp) {
-            $user = $DB->get_record('user', array('id' => $p->userid));
-            $userurl = new moodle_url('/user/viexw.php', array('id' => $p->userid));
+            @$allrolesstats += $sp;
+            $userurl = '';
+            $user = $DB->get_record('user', array('id' => $userid));
+            if ($user) {
+                if (in_array($user->id, $siteadmins)) {
+                    // Site admins are counted apart.
+                    @$rolestats[0]->users++;
+                    @$rolestats[0]->sp += $sp;
+                } else {
+                    // Count per higest ranked role avaialble.
+                    $sql = "
+                        SELECT
+                            MAX(r.sortorder)
+                        FROM
+                            {role_assignments} ra,
+                            {role} r
+                        WHERE
+                            ra.roleid = r.id AND
+                            ra.userid = ?
+                    ";
+                    if ($rolerank = $DB->get_field_sql($sql, array($userid))) {
+                        $role = $DB->get_record('role', array('sortorder' => $rolerank));
+                        @$rolestats[$role->id]->users++;
+                        @$rolestats[$role->id]->sp += $sp;
+                    } else {
+                        @$rolestats[-1]->users++;
+                        @$rolestats[-1]->sp += $sp;
+                    }
+                }
+                $userurl = new moodle_url('/user/view.php', array('id' => $userid));
+            }
+
             $table->data[] = array('<a href="'.$userurl.'">'.fullname($user).'</a>', $sp);
             $i++;
-            if ($i > 20) {
+            if ($i > 50) {
                 break;
             }
         }
 
         $str = html_writer::table($table);
 
+        $table = new html_table();
+
+        $table->head = array('<b>'.get_string('role').'</b>',
+                             '<b>'.get_string('distinctusers', 'local_advancedperfs').'</b>',
+                             '<b>'.get_string('slowpages', 'local_advancedperfs').'</b>',
+                             '%');
+        $table->align = array('left', 'left', 'left', 'left');
+        $table->size = array('60%', '20%', '10%', '10%');
+
+        $roles = role_get_names(null, ROLENAME_ALIAS, true);
+
+        if (!empty($rolestats)) {
+            foreach ($rolestats as $roleid => $rolestat) {
+                if ($roleid == 0) {
+                    $rolename = get_string('admin');
+                } else if ($roleid == -1) {
+                    $rolename = get_string('noroles', 'local_advancedperfs');
+                } else {
+                    $rolename = $roles[$roleid];
+                }
+                $ratio = ($allrolesstats > 0) ? $rolestat->sp / $allrolesstats * 100 : 0;
+                $table->data[] = array($rolename, $rolestat->users, $rolestat->sp, sprintf('%.1f', $ratio));
+            }
+        }
+
+        $str .= html_writer::table($table);
+
         return $str;
     }
 
     public function users_globals() {
         global $DB;
-
 
         $sql = "
             SELECT
@@ -649,9 +701,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
 
         $rank = array();
         foreach ($this->slowpages as $p) {
-            $url = str_replace($CFG->wwwroot, '', $p->url);
-            $url = preg_replace('/\\?.*/', '', $url);
-            @$rank[$url]++;
+            @$rank[$p->url]++;
         }
 
         asort($rank);
@@ -690,5 +740,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
 
         return $str;
 
+    }
+
+    public function is_empty() {
+        return empty($this->slowpages);
     }
 }
