@@ -535,7 +535,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         $this->load_data();
 
         if (!empty($this->slowpages)) {
-            foreach($this->slowpages as $p) {
+            foreach ($this->slowpages as $p) {
                 @$dist[$p->userid]++;
             }
         }

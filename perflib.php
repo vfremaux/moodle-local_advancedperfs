@@ -155,7 +155,7 @@ class performance_monitor {
             $this->init_cat($category);
         }
 
-        list($usec, $sec) = explode(' ',microtime());
+        list($usec, $sec) = explode(' ', microtime());
         $tick = (float)$sec + (float)$usec;
         $this->perfs[$category]->in = $tick;
         $this->perfs[$category]->state = PUNCHED_IN;
