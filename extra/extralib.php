@@ -15,31 +15,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ *
  * @package     local_advancedperfs
  * @subpackage  local
- * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @author      Valery Fremaux <valery.fremaux@club-internet.fr>
+ * @version     Moodle 2.x
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
- * @copyright   (C) 2016 onwards Valery Fremaux
+ * @copyright   (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
+ *
+ * this file contains a set of usefull debug tools for production
+ *
+ * used to very locally examining data structures.
+ *
+ * functions should all start with the debug_ prefix.
  */
-defined('MOODLE_INTERNAL') || die;
+if (!defined('MOODLE_EARLY_INTERNAL')) {
+    defined('MOODLE_INTERNAL') || die('');
+}
 
-$capabilities = array(
-    'local/advancedperfs:view' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
+/**
+ * this is a wrapper to a standard print_object to allow tests to pass
+ * expected use of print_object();
+ */
+function debug_print_object($object) {
+    print_object($object);
+}
 
-    /*
-     * People having this capability will have debug on
-     */
-    'local/advancedperfs:hasdebugrole' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
-);
+/**
+ * this is a wrapper to a standard print_object to allow tests to pass
+ * expected use of print_object();
+ */
+function debug_print_r($object) {
+    print_r($object);
+}
