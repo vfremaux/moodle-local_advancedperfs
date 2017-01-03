@@ -413,7 +413,7 @@ abstract class moodle_database {
             return;
         }
 
-        // PATCH+ : Advanced Benches..
+        // PATCH+ : Advanced Benches.
         if (function_exists('punchout')) {
             punchout('', 'dbcalls');
         }

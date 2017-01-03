@@ -412,7 +412,6 @@ abstract class moodle_database {
         if ($this->loggingquery) {
             return;
         }
-
         $this->last_sql       = $sql;
         $this->last_params    = $params;
         $this->last_type      = $type;
@@ -452,7 +451,6 @@ abstract class moodle_database {
         if ($this->loggingquery) {
             return;
         }
-
         if ($result !== false) {
             $this->query_log();
             // free memory
