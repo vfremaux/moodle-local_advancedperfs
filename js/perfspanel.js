@@ -1,7 +1,7 @@
-/*
+/**
  *
  */
-// jshint unused:false, undef:false
+// jshint undef:false, unused:false, scripturl:true
 
 function perfs_panel_change_state(state) {
     var url = M.cfg.wwwroot + '/local/advancedperfs/ajax/services.php?what=changepanelpreference&state=' + state;

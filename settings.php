@@ -68,7 +68,7 @@ if ($hassiteconfig) {
     $key = 'local_advancedperfs/slowpageexcludes';
     $label = get_string('configslowpageexcludes', 'local_advancedperfs');
     $desc = get_string('configslowpageexcludes_desc', 'local_advancedperfs');
-    $settings->add(new admin_setting_configtextarea($key, $label, $desc, 0));
+    $settings->add(new admin_setting_configtextarea($key, $label, $desc, 'local\\/advancedperfs'));
 
     $key = 'local_advancedperfs/userstosendto';
     $label = get_string('configuserstosendto', 'local_advancedperfs');
