@@ -39,12 +39,13 @@ $PAGE->set_context($context);
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('admin');
 $PAGE->set_title(get_string('pluginname', 'local_advancedperfs'));
+$PAGE->navbar->add(get_string('pluginname', 'local_advancedperfs'));
 
 $renderer = $PAGE->get_renderer('local_advancedperfs');
 
 if ($action) {
     include_once($CFG->dirroot.'/local/advancedperfs/report.controller.php');
-    $controller = \local_advancedperfs\report_controller();
+    $controller = new \local_advancedperfs\report_controller();
     $controller->receive($action);
     $controller->process($action);
 }
@@ -52,6 +53,15 @@ if ($action) {
 echo $OUTPUT->header();
 
 // Report global indicators.
+
+$renderer->load_data();
+
+if ($renderer->is_empty()) {
+    echo $OUTPUT->heading(get_string('pluginname', 'local_advancedperfs'));
+    echo $OUTPUT->notification(get_string('noslowpages', 'local_advancedperfs'));
+    echo $OUTPUT->footer();
+    die;
+}
 
 echo $renderer->tabs($view);
 
@@ -89,6 +99,7 @@ switch ($view) {
         break;
 
     case 'urls';
+        echo $renderer->url_ranking_by_occurrence();
         break;
 
 }
