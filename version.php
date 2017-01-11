@@ -26,10 +26,10 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version  = 2017110100;   // The (date) version of this plugin.
+$plugin->version  = 2016111901;   // The (date) version of this plugin.
 $plugin->requires = 2016051900;   // Requires this Moodle version.
 $plugin->component  = 'local_advancedperfs';   // The plugin name.
-$plugin->release = '3.1.0 (Build 2017110100)';
+$plugin->release = '3.1.0 (Build 2016111901)';
 $plugin->maturity = MATURITY_RC;
 $plugin->dependencies = array('local_vflibs' => 2016081100);
 

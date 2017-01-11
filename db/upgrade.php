@@ -61,24 +61,5 @@ function xmldb_local_advancedperfs_upgrade($oldversion = 0) {
         upgrade_plugin_savepoint(true, 2016111901, 'local', 'advancedperfs');
     }
 
-    if ($oldversion < 2017110100) {
-        // Define table.
-        $table = new xmldb_table('local_advancedperfs_slowp');
-
-        $field = new xmldb_field('onlineusers');
-        $field->set_attributes(XMLDB_TYPE_INTEGER, 6, null, null, null, null, null, 0, 'url');
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        $field = new xmldb_field('activeusers');
-        $field->set_attributes(XMLDB_TYPE_INTEGER, 6, null, null, null, null, null, 0, 'onlineusers');
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        upgrade_plugin_savepoint(true, 2017110100, 'local', 'advancedperfs');
-    }
-
     return $result;
 }
