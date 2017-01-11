@@ -273,6 +273,29 @@ class performance_monitor {
             // The cron task will trigger an alert if counter.
             $DB->set_field('config_plugins', 'value', $settings['slowpagescounter'] + 1, $counterparams);
 
+            // Any people wil still active session is considered as online.
+            $sql = "
+                SELECT
+                    COUNT(*)
+                FROM
+                    {user}
+                WHERE
+                    lastaccess > ?
+            ";
+
+            $onlineusers = $DB->count_records_sql($sql, array(time() - $CFG->sessiontimeout));
+
+            // Any people active from less then long page threshold is potentially calculating a page.
+            $sql = "
+                SELECT
+                    COUNT(*)
+                FROM
+                    {user}
+                WHERE
+                    lastaccess > ?
+            ";
+            $activeusers = $DB->count_records_sql($sql, array(time() - ($settings['longpagethreshold'] * MINSECS)));
+
             // Trace slowpage info.
             $slowpage = new StdClass;
             $slowpage->timecreated = time();
@@ -282,6 +305,8 @@ class performance_monitor {
             $slowpage->timeindb = $this->perfs['dbcalls']->total;
             $slowpage->url = str_replace($CFG->wwwroot, '', $PAGE->url);
             $slowpage->memused = memory_get_peak_usage(true);
+            $slowpage->onlineusers = $onlineusers;
+            $slowpage->activeusers = $activeusers;
             $DB->insert_record('local_advancedperfs_slowp', $slowpage);
 
             if (!empty($settings['filelogging'])) {
