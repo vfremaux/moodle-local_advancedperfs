@@ -39,6 +39,8 @@ class performance_monitor {
 
     protected $perfcategories = array();
 
+    protected $dbcallers = array();
+
     static private $instance;
 
     protected $staticconfig;
@@ -138,6 +140,28 @@ class performance_monitor {
         }
         $this->internal_punchin($category, $file, $line);
 
+        if ($category == 'dbcalls') {
+            $dbusecontext = $this->seek_trace();
+            $context = str_replace($CFG->dirroot, '', @$dbusecontext['file']);
+            @$this->dbcallers[$context]++;
+        }
+    }
+
+    /**
+     * Returns first applicative context using the database.
+     */
+    protected function seek_trace() {
+        $e = new Exception();
+        $trace = $e->getTrace();
+
+        // Remove first (here !), second (known in dmllib) and third (db call).
+
+        $t = array_shift($trace);
+        while (preg_match('/perflib|moodle_database|moodlelib/', $t['file'])) {
+            $t = array_shift($trace);
+        }
+
+        return array_shift($trace);
     }
 
     /**
@@ -273,6 +297,29 @@ class performance_monitor {
             // The cron task will trigger an alert if counter.
             $DB->set_field('config_plugins', 'value', $settings['slowpagescounter'] + 1, $counterparams);
 
+            // Any people wil still active session is considered as online.
+            $sql = "
+                SELECT
+                    COUNT(*)
+                FROM
+                    {user}
+                WHERE
+                    lastaccess > ?
+            ";
+
+            $onlineusers = $DB->count_records_sql($sql, array(time() - $CFG->sessiontimeout));
+
+            // Any people active from less then long page threshold is potentially calculating a page.
+            $sql = "
+                SELECT
+                    COUNT(*)
+                FROM
+                    {user}
+                WHERE
+                    lastaccess > ?
+            ";
+            $activeusers = $DB->count_records_sql($sql, array(time() - ($settings['longpagethreshold'] * MINSECS)));
+
             // Trace slowpage info.
             $slowpage = new StdClass;
             $slowpage->timecreated = time();
@@ -282,6 +329,8 @@ class performance_monitor {
             $slowpage->timeindb = $this->perfs['dbcalls']->total;
             $slowpage->url = str_replace($CFG->wwwroot, '', $PAGE->url);
             $slowpage->memused = memory_get_peak_usage(true);
+            $slowpage->onlineusers = $onlineusers;
+            $slowpage->activeusers = $activeusers;
             $DB->insert_record('local_advancedperfs_slowp', $slowpage);
 
             if (!empty($settings['filelogging'])) {
@@ -395,6 +444,22 @@ class performance_monitor {
 
         $str .= '<div id="timebenches" class="'.$initialclass.'">';
         $str .= html_writer::table($table);
+
+        $callerstr = get_string('dbcaller', 'local_advancedperfs');
+        $callsstr = get_string('dbcalls', 'local_advancedperfs');
+        if (!empty($this->dbcallers)) {
+            $dbcallstable = new html_table();
+            $dbcallstable->head = array("<b>$callerstr</b>", "<b>$callsstr</b>");
+            $dbcallstable->width = '100%';
+            $dbcallstable->size = array('80%', '20%');
+            $dbcallstable->align = array('left', 'right');
+            asort($this->dbcallers);
+            $this->dbcallers = array_reverse($this->dbcallers);
+            foreach($this->dbcallers as $ctx => $calls) {
+                $dbcallstable->data[] = array($ctx, $calls);
+            }
+            $str .= html_writer::table($dbcallstable);
+        }
 
         $slowpagesreportstr = get_string('slowpagesreport', 'local_advancedperfs');
         $slowpagereporturl = new moodle_url('/local/advancedperfs/report.php');
