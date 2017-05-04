@@ -14,18 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-if (!defined('MOODLE_EARLY_INTERNAL')) {
-    defined('MOODLE_INTERNAL') || die('');
-}
-
 /**
  *
- * @package performance
- * @subpackage local
- * @author     Valery Fremaux <valery.fremaux@club-internet.fr>
- * @version Moodle 2.x
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL
- * @copyright  (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
+ * @package     local_advancedperfs
+ * @subpackage  local
+ * @author      Valery Fremaux <valery.fremaux@club-internet.fr>
+ * @version     Moodle 2.x
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
+ * @copyright   (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
  *
  * this file contains a set of usefull debug tools for production
  *
@@ -33,6 +29,11 @@ if (!defined('MOODLE_EARLY_INTERNAL')) {
  *
  * functions should all start with the debug_ prefix.
  */
+if (!defined('MOODLE_EARLY_INTERNAL')) {
+    defined('MOODLE_INTERNAL') || die('');
+}
+
+require_once($CFG->dirroot.'/local/advancedperfs/extra/extralib.php');
 
 function debug_print_for_user($user, $text) {
     global $USER;
@@ -72,7 +73,7 @@ function debug_print_user_info($userid) {
     if ($USER->id == $userid) {
         echo "<div class=\"debug\">";
         echo "<b>Debug track only for " . fullname($USER).'</b><br/>';
-        print_object($USER);
+        debug_print_object($USER);
         echo '</div>';
     }
 }
@@ -98,7 +99,7 @@ function debug_print_user_access($userid) {
         foreach ($access['rdef'] as $racontext => $caps) {
             asort($caps);
             echo "[$racontext] => ";
-            print_object($caps);
+            debug_print_object($caps);
             echo '<br/>';
         }
         echo "</div>";
@@ -120,7 +121,7 @@ function debug_track_capabilities($userid, $capnames) {
     if ($USER->id == $userid) {
         $roles = $DB->get_records_menu('role', array(), 'name', 'id,name');
         $access = &$USER->access;
-        echo "<div class=\"debug\">";
+        echo '<div class="debug">';
         echo "<b>Capability track only for " . fullname($USER).'</b><br/>';
 
         if (is_array($capnames)) {
@@ -134,13 +135,13 @@ function debug_track_capabilities($userid, $capnames) {
         foreach ($access['rdef'] as $racontext => $caps) {
             if (!is_array($capnames)) {
                 if (array_key_exists($capnames, $caps)) {
-                    list($path, $roleid) = split(':', $racontext);
+                    list($path, $roleid) = explode(':', $racontext);
                     echo "[$path:{$roles[$roleid]}($roleid)] => [$capnames] => {$caps[$capnames]}<br/>";
                 }
             } else {
                 foreach ($capnames as $capname) {
                     if (array_key_exists($capname, $caps)) {
-                        list($path, $roleid) = split(':', $racontext);
+                        list($path, $roleid) = explode(':', $racontext);
                         echo "[$path:{$roles[$roleid]}($roleid)] => [$capname] => {$caps[$capname]}<br/>";
                     }
                 }
@@ -158,28 +159,28 @@ function debug_track_capabilities($userid, $capnames) {
  * some piece of code. Do NEVER use in production systems unless hot case urgent tracking
  */
 function debug_open_trace() {
-    global $CFG, $TRACE, $OUTPUT;
+    global $CFG, $OUTPUT;
 
-    if (!empty($CFG->trace) && is_null($TRACE)) {
-        $TRACE = @fopen($CFG->trace, 'a');
+    if (!empty($CFG->trace) && empty($CFG->tracehandle)) {
+        $CFG->tracehandle = @fopen($CFG->trace, 'a');
     }
-    if (!empty($CFG->trace) && !$TRACE) {
+    if (!empty($CFG->trace) && !$CFG->tracehandle) {
         if (debugging()) {
             echo $OUTPUT->notification('Trace could not be open at '.$CFG->trace);
         }
     }
-    return !is_null($TRACE);
+    return !is_null(@$CFG->tracehandle);
 }
 
 /**
  * closes an open trace
  */
 function debug_close_trace() {
-    global $TRACE;
+    global $CFG;
 
-    if (!is_null($TRACE)) {
-        fclose($TRACE);
-        $TRACE = null;
+    if (!is_null($CFG->tracehandle)) {
+        fclose($CFG->tracehandle);
+        $CFG->tracehandle = null;
     }
 }
 
@@ -187,10 +188,10 @@ function debug_close_trace() {
  * outputs into an open trace (ligther than debug_trace)
  */
 function debug_trace_open($str) {
-    global $TRACE, $CFG;
+    global $CFG;
 
-    if (!is_null($TRACE)) {
-        fputs($TRACE, @$CFG->transID." ------- ". date('Y-m-d h:i', time())." -------\n".$str."\n");
+    if (!is_null($CFG->tracehandle)) {
+        fputs($CFG->tracehandle, @$CFG->transID." ------- ". date('Y-m-d H:i', time())." -------\n".$str."\n");
     }
 }
 
@@ -198,9 +199,9 @@ function debug_trace_open($str) {
  * write to the trace
  */
 function debug_trace($str) {
-    global $TRACE;
+    global $CFG;
 
-    if (!is_null($TRACE)) {
+    if (!empty($CFG->tracehandle)) {
         debug_trace_open($str);
     } else {
         if (debug_open_trace()) {
@@ -214,14 +215,11 @@ function debug_trace($str) {
  * write to the trace
  */
 function debug_dump($var) {
-    global $TRACE;
+    global $CFG;
 
-    ob_start();
-    var_dump($var);
-    $dump = ob_get_contents();
-    ob_end_clean();
+    $dump = debug_print_r($var, true);
 
-    if (!is_null($TRACE)) {
+    if (!is_null($CFG->tracehandle)) {
         debug_trace_open($dump);
     } else {
         if (debug_open_trace()) {
@@ -241,7 +239,7 @@ function debug_print_clean_backtrace($options = BACKTRACE_FUNCNAME) {
     echo '</pre>';
 }
 
-function print_object_nr($object, $depth = 1) {
+function debug_print_object_nr($object, $depth = 1) {
     static $currentdepth = 1;
     static $indent = '';
 
@@ -273,16 +271,16 @@ function print_object_nr($object, $depth = 1) {
             if ($depth > $currentdepth) {
                 $currentdepth++;
                 echo $indent."$k : ";
-                print_object_nr($m, $depth);
+                debug_print_object_nr($m, $depth);
                 $currentdepth--;
             } else {
                 echo $indent."$k : [Object]\n";
             }
-        } elseif (is_array($m)) {
+        } else if (is_array($m)) {
             if ($depth > $currentdepth) {
                 $currentdepth++;
                 echo $indent."$k : ";
-                print_object_nr($m, $depth);
+                debug_print_object_nr($m, $depth);
                 $currentdepth--;
             } else {
                 echo $indent."$k : [Array]\n";
@@ -298,11 +296,11 @@ function print_object_nr($object, $depth = 1) {
     }
 }
 
-function debug_print_object($object, $file = __FILE__, $line = __LINE__) {
+function debug_debug_print_object($object, $file = __FILE__, $line = __LINE__) {
     echo '<pre>';
     echo "Print location : $file § $line";
     echo '</pre>';
-    print_object($object);
+    debug_print_object($object);
 }
 
 /**
@@ -310,7 +308,7 @@ function debug_print_object($object, $file = __FILE__, $line = __LINE__) {
  * It should be called at quite soonest point in the page to toggle debug mode on if required.
  */
 function debug_catch_users() {
-    global $CFG, $USER, $DEBUGCAUSE, $PAGE, $DB;
+    global $CFG, $USER, $debugcause, $PAGE, $DB;
 
     // Ensure we have a database.
     if (empty($DB)) {
@@ -320,8 +318,10 @@ function debug_catch_users() {
     if (!$tables = $DB->get_tables(false) ) {    // No tables yet at all.
         return false;
 
-    } else {                                 // Check for missing main tables
-        $mtables = array('config', 'course', 'groupings'); // some tables used in 1.9 and 2.0, preferable something from the start and end of install.xml
+    } else {
+        // Check for missing main tables.
+        // Some tables used in 1.9 and 2.0, preferable something from the start and end of install.xml.
+        $mtables = array('config', 'course', 'groupings');
         foreach ($mtables as $mtable) {
             if (!in_array($mtable, $tables)) {
                 return false;
@@ -338,7 +338,7 @@ function debug_catch_users() {
         $debugusers = explode(',', $CFG->debugusers);
         if (in_array($USER->id, $debugusers)) {
             $CFG->debug = DEBUG_DEVELOPER;
-            $DEBUGCAUSE = 'Debug User Match';
+            $debugcause = 'Debug User Match';
             return;
         }
     }
@@ -347,7 +347,7 @@ function debug_catch_users() {
         $debugips = explode(',', $CFG->debugfromips);
         if (in_array($_SERVER['INET_ADDRESS'], $debugips)) {
             $CFG->debug = DEBUG_DEVELOPER;
-            $DEBUGCAUSE = 'Debug IP Match';
+            $debugcause = 'Debug IP Match';
             return;
         }
     }
@@ -355,10 +355,12 @@ function debug_catch_users() {
     // Early calls of this function may not have sufficiant moodle libraries loaded.
     if (function_exists('has_capability')) {
         if (has_capability('local/advancedperfs:hasdebugrole', context_system::instance(), $USER->id, false)) {
-            $DEBUGCAUSE = 'Debug Capability Match';
+            $debugcause = 'Debug Capability Match';
             $CFG->debug = DEBUG_DEVELOPER;
         }
     }
 
-    if (empty($DEBUGCAUSE) && !empty($CFG->debugdisplay)) $DEBUGCAUSE = 'Standard Debug Mode';
+    if (empty($debugcause) && !empty($CFG->debugdisplay)) {
+        $debugcause = 'Standard Debug Mode';
+    }
 }
