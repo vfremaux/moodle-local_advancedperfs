@@ -23,12 +23,21 @@ class mnet_xmlrpc_client {
     var $mnet     = null;
 
     /**
-     * Constructor returns true
+     * Constructor
      */
-    function mnet_xmlrpc_client() {
+    public function __construct() {
         // make sure we've got this set up before we try and do anything else
         $this->mnet = get_mnet_environment();
-        return true;
+    }
+
+    /**
+     * Old syntax of class constructor. Deprecated in PHP7.
+     *
+     * @deprecated since Moodle 3.1
+     */
+    public function mnet_xmlrpc_client() {
+        debugging('Use of class name as constructor is deprecated', DEBUG_DEVELOPER);
+        self::__construct();
     }
 
     /**
@@ -367,7 +376,7 @@ class mnet_xmlrpc_client {
      * @return cURL handle - the almost-ready-to-send http request
      */
     function prepare_http_request ($mnet_peer) {
-        $this->uri = trim($mnet_peer->wwwroot . $mnet_peer->application->xmlrpc_server_url);
+        $this->uri = $mnet_peer->wwwroot . $mnet_peer->application->xmlrpc_server_url;
 
         // Initialize request the target URL
         $httprequest = curl_init($this->uri);

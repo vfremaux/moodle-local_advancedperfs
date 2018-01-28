@@ -30,6 +30,8 @@ if (is_dir($CFG->dirroot.'/local/adminsettings')) {
 if ($hassiteconfig) {
     $settings = new admin_settingpage('local_timebenches', get_string('pluginname', 'local_advancedperfs'));
 
+    $settings->add(new admin_setting_heading('perfshdr', get_string('perfs', 'local_advancedperfs'), ''));
+
     $key = 'local_advancedperfs/enabled';
     $label = get_string('configadvancedperfsenabled', 'local_advancedperfs');
     $desc = get_string('configadvancedperfsenabled_desc', 'local_advancedperfs');
@@ -80,6 +82,42 @@ if ($hassiteconfig) {
     $desc = get_string('configfilelogging_desc', 'local_advancedperfs');
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, ''));
 
+    $settings->add(new admin_setting_heading('debughdr', get_string('debugtrack', 'local_advancedperfs'), ''));
+
+    $key = 'local_advancedperfs/debugreleasethreshold';
+    $label = get_string('configdebugreleasethreshold', 'local_advancedperfs');
+    $desc = get_string('configdebugreleasethreshold_desc', 'local_advancedperfs');
+    $default = DEBUG_ALL;
+    $debugoptions = array(DEBUG_NONE      => get_string('debugnone', 'admin'),
+            DEBUG_MINIMAL   => get_string('debugminimal', 'admin'),
+            DEBUG_NORMAL    => get_string('debugnormal', 'admin'),
+            DEBUG_ALL       => get_string('debugall', 'admin'),
+            DEBUG_DEVELOPER => get_string('debugdeveloper', 'admin'));
+
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $debugoptions));
+
+    $key = 'local_advancedperfs/debugreleaseafter';
+    $label = get_string('configdebugreleaseafter', 'local_advancedperfs');
+    $desc = get_string('configdebugreleaseafter_desc', 'local_advancedperfs');
+    $default = 12; // 12 hours.
+    $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
+
+    $key = 'local_advancedperfs/debugreleasevalue';
+    $label = get_string('configdebugreleasevalue', 'local_advancedperfs');
+    $desc = get_string('configdebugreleasevalue_desc', 'local_advancedperfs');
+    $default = DEBUG_NORMAL;
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $debugoptions));
+
+    $key = 'local_advancedperfs/debugdisplayreleasevalue';
+    $label = get_string('configdebugdisplayreleasevalue', 'local_advancedperfs');
+    $desc = get_string('configdebugdisplayreleasevalue_desc', 'local_advancedperfs');
+    $default = 0;
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $debugoptions));
+
     $ADMIN->add('development', $settings);
+
+    $label = get_string('trace', 'local_advancedperfs');
+    $traceurl = new moodle_url('/local/advancedperfs/trace.php');
+    $ADMIN->add('development', new admin_externalpage('trace', $label, $traceurl, 'moodle/site:config'));
 }
 

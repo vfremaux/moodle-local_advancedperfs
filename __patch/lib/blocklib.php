@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -107,14 +108,14 @@ class block_manager {
      * Will be an array region-name => array(db rows loaded in load_blocks);
      * @var array
      */
-    public $birecordsbyregion = null;
+    protected $birecordsbyregion = null;
 
     /**
      * array region-name => array(block objects); populated as necessary by
      * the ensure_instances_exist method.
      * @var array
      */
-    public $blockinstances = array();
+    protected $blockinstances = array();
 
     /**
      * array region-name => array(block_contents objects) what actually needs to
@@ -270,6 +271,9 @@ class block_manager {
      * @return boolean true if this region exists on this page.
      */
     public function is_known_region($region) {
+        if (empty($region)) {
+            return false;
+        }
         return array_key_exists($region, $this->regions);
     }
 
@@ -957,7 +961,6 @@ class block_manager {
      * @return array An array of block_content (and possibly block_move_target) objects.
      */
     protected function create_block_contents($instances, $output, $region) {
-
         $results = array();
 
         $lastweight = 0;
@@ -983,8 +986,10 @@ class block_manager {
                 continue;
             }
 
-            if ($this->movingblock && $lastweight != $instance->instance->weight &&
-                    $content->blockinstanceid != $this->movingblock && $lastblock != $this->movingblock) {
+            if ($this->movingblock &&
+                    $lastweight != $instance->instance->weight &&
+                            $content->blockinstanceid != $this->movingblock &&
+                                    $lastblock != $this->movingblock) {
                 $results[] = new block_move_target($this->get_move_target_url($region, ($lastweight + $instance->instance->weight)/2));
             }
 
@@ -1101,38 +1106,36 @@ class block_manager {
         }
 
         // Display either "Assign roles" or "Permissions" or "Change permissions" icon (whichever first is available).
-        if ($this->page->pagetype != 'my-index') {
-            $rolesurl = null;
+        $rolesurl = null;
 
-            if (get_assignable_roles($block->context, ROLENAME_SHORT)) {
-                $rolesurl = new moodle_url('/admin/roles/assign.php', array('contextid' => $block->context->id));
-                $str = new lang_string('assignrolesinblock', 'block', $blocktitle);
-                $icon = 'i/assignroles';
-            } else if (has_capability('moodle/role:review', $block->context) or get_overridable_roles($block->context)) {
-                $rolesurl = new moodle_url('/admin/roles/permissions.php', array('contextid' => $block->context->id));
-                $str = get_string('permissions', 'role');
-                $icon = 'i/permissions';
-            } else if (has_any_capability(array('moodle/role:assign', 'moodle/role:safeoverride', 'moodle/role:override', 'moodle/role:assign'), $block->context)) {
-                $rolesurl = new moodle_url('/admin/roles/check.php', array('contextid' => $block->context->id));
-                $str = get_string('checkpermissions', 'role');
-                $icon = 'i/checkpermissions';
-            }
+        if (get_assignable_roles($block->context, ROLENAME_SHORT)) {
+            $rolesurl = new moodle_url('/admin/roles/assign.php', array('contextid' => $block->context->id));
+            $str = new lang_string('assignrolesinblock', 'block', $blocktitle);
+            $icon = 'i/assignroles';
+        } else if (has_capability('moodle/role:review', $block->context) or get_overridable_roles($block->context)) {
+            $rolesurl = new moodle_url('/admin/roles/permissions.php', array('contextid' => $block->context->id));
+            $str = get_string('permissions', 'role');
+            $icon = 'i/permissions';
+        } else if (has_any_capability(array('moodle/role:safeoverride', 'moodle/role:override', 'moodle/role:assign'), $block->context)) {
+            $rolesurl = new moodle_url('/admin/roles/check.php', array('contextid' => $block->context->id));
+            $str = get_string('checkpermissions', 'role');
+            $icon = 'i/checkpermissions';
+        }
 
-            if ($rolesurl) {
-                //TODO: please note it is sloppy to pass urls through page parameters!!
-                //      it is shortened because some web servers (e.g. IIS by default) give
-                //      a 'security' error if you try to pass a full URL as a GET parameter in another URL.
-                $return = $this->page->url->out(false);
-                $return = str_replace($CFG->wwwroot . '/', '', $return);
-                $rolesurl->param('returnurl', $return);
+        if ($rolesurl) {
+            // TODO: please note it is sloppy to pass urls through page parameters!!
+            //      it is shortened because some web servers (e.g. IIS by default) give
+            //      a 'security' error if you try to pass a full URL as a GET parameter in another URL.
+            $return = $this->page->url->out(false);
+            $return = str_replace($CFG->wwwroot . '/', '', $return);
+            $rolesurl->param('returnurl', $return);
 
-                $controls[] = new action_menu_link_secondary(
-                    $rolesurl,
-                    new pix_icon($icon, $str, 'moodle', array('class' => 'iconsmall', 'title' => '')),
-                    $str,
-                    array('class' => 'editing_roles')
-                );
-            }
+            $controls[] = new action_menu_link_secondary(
+                $rolesurl,
+                new pix_icon($icon, $str, 'moodle', array('class' => 'iconsmall', 'title' => '')),
+                $str,
+                array('class' => 'editing_roles')
+            );
         }
 
         if ($this->user_can_delete_block($block)) {
@@ -1505,10 +1508,10 @@ class block_manager {
             if ($bits[0] == 'tag' && !empty($this->page->subpage)) {
                 // better navbar for tag pages
                 $editpage->navbar->add(get_string('tags'), new moodle_url('/tag/'));
-                $tag = tag_get('id', $this->page->subpage, '*');
+                $tag = core_tag_tag::get($this->page->subpage);
                 // tag search page doesn't have subpageid
                 if ($tag) {
-                    $editpage->navbar->add($tag->name, new moodle_url('/tag/index.php', array('id'=>$tag->id)));
+                    $editpage->navbar->add($tag->get_display_name(), $tag->get_view_url());
                 }
             }
             $editpage->navbar->add($block->get_title());
@@ -2051,6 +2054,15 @@ function blocks_name_allowed_in_format($name, $pageformat) {
 function blocks_delete_instance($instance, $nolongerused = false, $skipblockstables = false) {
     global $DB;
 
+    // Allow plugins to use this block before we completely delete it.
+    if ($pluginsfunction = get_plugins_with_function('pre_block_delete')) {
+        foreach ($pluginsfunction as $plugintype => $plugins) {
+            foreach ($plugins as $pluginfunction) {
+                $pluginfunction($instance);
+            }
+        }
+    }
+
     if ($block = block_instance($instance->blockname, $instance)) {
         $block->instance_delete();
     }
@@ -2270,6 +2282,6 @@ function blocks_add_default_system_blocks() {
     }
 
     $newblocks = array('private_files', 'online_users', 'badges', 'calendar_month', 'calendar_upcoming');
-    $newcontent = array('course_overview');
+    $newcontent = array('lp', 'course_overview');
     $page->blocks->add_blocks(array(BLOCK_POS_RIGHT => $newblocks, 'content' => $newcontent), 'my-index', $subpagepattern);
 }
