@@ -112,12 +112,24 @@ if ($hassiteconfig) {
     $label = get_string('configdebugdisplayreleasevalue', 'local_advancedperfs');
     $desc = get_string('configdebugdisplayreleasevalue_desc', 'local_advancedperfs');
     $default = 0;
-    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $debugoptions));
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
     $ADMIN->add('development', $settings);
 
     $label = get_string('trace', 'local_advancedperfs');
     $traceurl = new moodle_url('/local/advancedperfs/trace.php');
     $ADMIN->add('development', new admin_externalpage('trace', $label, $traceurl, 'moodle/site:config'));
+
+    $settings->add(new admin_setting_heading('datafixhdr', get_string('datafixes', 'local_advancedperfs'), get_string('datafixes_desc', 'local_advancedperfs')));
+
+    $key = 'local_advancedperfs/fixenabled';
+    $label = get_string('configfixenabled', 'local_advancedperfs');
+    $desc = get_string('configfixenabled_desc', 'local_advancedperfs');
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, ''));
+
+    $key = 'local_advancedperfs/fixsql';
+    $label = get_string('configfixsql', 'local_advancedperfs');
+    $desc = get_string('configfixsql_desc', 'local_advancedperfs');
+    $settings->add(new admin_setting_configtextarea($key, $label, $desc, ''));
 }
 

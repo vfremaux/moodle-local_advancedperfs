@@ -21,15 +21,15 @@ $string['actives'] = 'Actifs';
 $string['clear'] = 'Purger la trace';
 $string['cleartrace'] = 'Vider la trace';
 $string['configadvancedperfsenabled'] = 'Activation';
-$string['configdebugdisplayreleasevalue_desc'] = '';
 $string['configdebugdisplayreleasevalue'] = 'Mode d\'affichage du déboggage par défaut';
-$string['configdebugreleaseafter_desc'] = 'Modifiera les valeurs de déboggage si le niveau de déboggage est supérieur ou égal au seuil depuis au moins ce temps (en heure).';
-$string['configdebugreleasethreshold_desc'] = 'Modifiera les valeurs de déboggage si le niveau de déboggage est supérieur ou égal à ce seuil.';
-$string['configdebugreleasevalue_desc'] = 'Le niveau de déboggage après relâchement.';
+$string['configdebugfromips'] = 'Les sessions provenant de ces IPs sont placées en mode déboggage.';
 $string['configdebugreleaseafter'] = 'Relâcher le déboggage au bout de';
 $string['configdebugreleasethreshold'] = 'Seuil de relâchement du déboggage';
 $string['configdebugreleasevalue'] = 'Valeur de déboggage par défaut';
+$string['configdebugusers'] = 'Les utilisateurs dont les IDs figurent dans cette liste (à virgules) sont passés en mode déboggage.';
 $string['configfilelogging'] = 'Activer la journalisation fichiers';
+$string['configfixenabled'] = 'Activer la correction de données';
+$string['configfixsql'] = 'SQL de correction';
 $string['configlongpagethreshold'] = 'Temps de page longue';
 $string['configslowpagederiv'] = 'Variation de pages lentes';
 $string['configslowpagederivthreshold'] = 'Seuil d\'alerte sur la dérivée';
@@ -38,6 +38,7 @@ $string['configslowpagescounterrec'] = 'Mémoire de compteur (N-1)';
 $string['configuserstosendto'] = 'Utilisateurs à avertir';
 $string['configverylongpagethreshold'] = 'Temps de page très longue';
 $string['content'] = 'Contenu';
+$string['datafixes'] = 'Correction de données';
 $string['daysslow'] = 'Jours lents';
 $string['db'] = 'DB';
 $string['dbcalls'] = 'DB';
@@ -45,7 +46,9 @@ $string['dbcallsdist'] = 'Appels à la base';
 $string['dbquerydist'] = 'distribution du nombre d\'appels';
 $string['dbratiodist'] = 'Taux de temps de calcul dans la base';
 $string['dbtimedist'] = 'Temps passé dans la base';
+$string['debugfromips'] = 'IPs de debug';
 $string['debugtrack'] = 'Relâchement automatique du déboggage';
+$string['debugusers'] = 'Utilisateurs de debug';
 $string['distinctusers'] = 'Utilisateurs distincts';
 $string['distribution'] = 'Distribution';
 $string['envusers'] = 'Utilisateurs dans l\'environnement';
@@ -78,6 +81,8 @@ $string['slowpagescount'] = 'Pages lentes (> {$a}s)';
 $string['slowpagesratio'] = 'Taux';
 $string['slowpagesreport'] = 'Raport sur les performances de page.';
 $string['taskmonitor'] = 'Surveillance des pages lentes';
+$string['taskmonitor'] = 'Tâche d\'observation continue des performances';
+$string['tasktrackdebug'] = 'Tâche de relâchement du déboggage.';
 $string['timedist'] = 'distribution du temps passé';
 $string['timeline'] = 'Calendrier des pages lentes (nombre par jour)';
 $string['timerelmem'] = 'Temps passé vs. mémoire consomée';
@@ -85,19 +90,24 @@ $string['timerelusers'] = 'Temps passé vs. utilisateurs présents';
 $string['timespent'] = 'Temps de calcul';
 $string['trace'] = 'Trace technique';
 $string['tracetoobig'] = 'Le fichier trace est trop grand';
-$string['tracetoobig_desc'] = 'Le fichier de trace est trop grand pour être téléchargé. Vous devriez le vider et répeter votre cas de test.';
-$string['taskmonitor'] = 'Tâche d\'observation continue des performances';
-$string['tasktrackdebug'] = 'Tâche de relâchement du déboggage.';
+$string['unconnectedusers'] = 'Non connectés';
 $string['urls'] = 'Urls';
 $string['urlsbyfreq'] = 'Fréquence par Url de base';
 $string['users'] = 'Utilisateurs';
 $string['worstday'] = 'Jour le plus lent';
 
-$string['debugusers'] = 'Utilisateurs de debug';
-$string['debugfromips'] = 'IPs de debug';
-$string['configdebugusers'] = 'Les utilisateurs dont les IDs figurent dans cette liste (à virgules) sont passés en mode déboggage.';
-$string['configdebugfromips'] = 'Les sessions provenant de ces IPs sont placées en mode déboggage.';
-$string['unconnectedusers'] = 'Non connectés';
+$string['configdebugdisplayreleasevalue_desc'] = '';
+
+$string['configdebugreleaseafter_desc'] = 'Modifiera les valeurs de déboggage si le niveau de déboggage est supérieur
+ou égal au seuil depuis au moins ce temps (en heure).';
+
+$string['configdebugreleasethreshold_desc'] = 'Modifiera les valeurs de déboggage si le niveau de déboggage est
+supérieur ou égal à ce seuil.';
+
+$string['configdebugreleasevalue_desc'] = 'Le niveau de déboggage après relâchement.';
+
+$string['tracetoobig_desc'] = 'Le fichier de trace est trop grand pour être téléchargé. Vous devriez le
+vider et répeter votre cas de test.';
 
 $string['configadvancedperfsenabled_desc'] = 'Si activé, des mesure de temps d\'exécution détaillées sont affichées pour
 l\'administrateur.';
@@ -120,3 +130,13 @@ ou leur ID numérique.';
 
 $string['configverylongpagethreshold_desc'] = 'Seuil de temps d\'exécution au dela duquel une alerte immédiate est envoyée
 aux administrateurs.';
+
+$string['configfixenabled_desc'] = 'Si activé, alors la correction de données sera exécutée une fois par
+jour (ou selon la programmation de la tâche programmée).';
+
+$string['configfixsql_desc'] = 'Entrez les instructions SQL qui s\'exécuteront lors de la correction de données. Les
+instructions doivent être terminées par un point-virgule (;).';
+
+$string['datafixes_desc'] = 'La correction de données permet d\'ajouter un traitement symptomatique d\'erreurs de données simples dans 
+la base de données de moodle. Il ne corrige pas les causes premières qui conduisent aux données erronées, mais permettent de sécuriser
+temporairement une installation le temps que les correctifs puissent être produits et déployés.';

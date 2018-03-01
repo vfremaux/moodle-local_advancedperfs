@@ -141,7 +141,7 @@ class performance_monitor {
 
         if ($category == 'dbcalls') {
             $dbusecontext = $this->seek_trace();
-            $context = str_replace($CFG->dirroot, '', @$dbusecontext['file']);
+            $context = str_replace($CFG->dirroot, '', @$dbusecontext['file'].'§'.@$dbusecontext['line']);
             @$this->dbcallers[$context]++;
         }
     }

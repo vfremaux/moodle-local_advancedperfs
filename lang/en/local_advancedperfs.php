@@ -16,43 +16,31 @@
 
 $string['advancedperfs:view'] = 'View perfs';
 $string['advancedperfs:hasdebugrole'] = 'Has a debug role';
-$string['pluginname'] = 'Advanced perfs';
 
 $string['actives'] = 'Actives';
 $string['blockinits'] = 'Block Initialisations';
 $string['categories'] = 'Categories';
 $string['clear'] = 'Clear the trace';
 $string['configadvancedperfsenabled'] = 'Enable perfs';
-$string['configadvancedperfsenabled_desc'] = 'If enabled, additional detail perfs are displayed for administrator';
-$string['configdebugdisplayreleasevalue_desc'] = 'Debug display mode to set when releasing.';
 $string['configdebugdisplayreleasevalue'] = 'Debug display release value';
 $string['configdebugfromips'] = 'Sessions comming from this IPs will be turned in debug mode.';
-$string['configdebugreleaseafter_desc'] = 'Release will be triggered if last debug level over threshold is set since at least that amount (hours).';
-$string['configdebugreleasethreshold_desc'] = 'Release will be processed if debug level is over or equal to this debug level.';
-$string['configdebugreleasevalue_desc'] = 'Debug level to set when releasing.';
 $string['configdebugreleaseafter'] = 'Release debug after';
 $string['configdebugreleasethreshold'] = 'Debug release threshold';
 $string['configdebugreleasevalue'] = 'Debug release value';
 $string['configdebugusers'] = 'User IDs mentionned in this list will be turned in debug mode.';
 $string['configfilelogging'] = 'Enable file Logging';
-$string['configfilelogging_desc'] = 'If enabled, events are logged in files additionnaly to the database records.';
+$string['configfixenabled'] = 'Enable data fixes';
+$string['configfixsql'] = 'SQL fixture';
 $string['configlongpagethreshold'] = 'Long page threshold';
-$string['configlongpagethreshold_desc'] = 'Threshold for long pages';
 $string['configslowpagederiv'] = 'Slow page derivate';
-$string['configslowpagederiv_desc'] = 'Current state of the slow page variation';
 $string['configslowpagederivthreshold'] = 'Derivate threshold for alert';
-$string['configslowpagederivthreshold_desc'] = 'Threshold that triggers administrator alerts telling too many slow pages are run.';
 $string['configslowpageexcludes'] = 'Urls to exclude from slow page detection';
-$string['configslowpageexcludes_desc'] = 'Some urls may be known to be slow or needing significant procesisng time. You may give a list of url patterns (regexp like)';
 $string['configslowpagescounter'] = 'Slow page count';
-$string['configslowpagescounter_desc'] = 'Counts occurrences of slow pages exceeding the long page threshold time.';
 $string['configslowpagescounterrec'] = 'Slow page count (N-1)';
-$string['configslowpagescounterrec_desc'] = 'The last counter state. Memorizes the counter at previous task run.';
 $string['configuserstosendto'] = 'Users to send to';
-$string['configuserstosendto_desc'] = 'A list of emails, usernames or numeric user IDs comma separated.';
 $string['configverylongpagethreshold'] = 'Very long page threshold';
-$string['configverylongpagethreshold_desc'] = 'Threshold over which an immediate alert is sent.';
 $string['content'] = 'Content';
+$string['datafixes'] = 'Data fix';
 $string['daysslow'] = 'Days affected';
 $string['db'] = 'DB';
 $string['dbcaller'] = 'DB Caller';
@@ -85,7 +73,6 @@ $string['min'] = 'min';
 $string['mostaffecteduser'] = 'Most affected users';
 $string['noroles'] = 'No roles';
 $string['noslowpages'] = 'No slow pages detected';
-$string['nothingsince'] = 'Clean since';
 $string['nothingsince'] = 'Nothing since';
 $string['num'] = 'Ocurrences';
 $string['numusersaffected'] = 'Number of affected users';
@@ -95,6 +82,7 @@ $string['overall'] = 'Overall';
 $string['page'] = 'Page';
 $string['pagesetup'] = 'Page setup';
 $string['perfs'] = 'Performances';
+$string['pluginname'] = 'Advanced perfs';
 $string['range'] = 'Range';
 $string['ratioaffectedusers'] = 'Ratio of affected users among all users';
 $string['reset'] = 'Reset';
@@ -123,4 +111,41 @@ $string['urlsbymem'] = 'Urls by memory used';
 $string['users'] = 'Users';
 $string['worstday'] = 'Slowest day';
 
+$string['configslowpagederiv_desc'] = 'Current state of the slow page variation';
+
+$string['configadvancedperfsenabled_desc'] = 'If enabled, additional detail perfs are displayed for administrator';
+
+$string['configdebugdisplayreleasevalue_desc'] = 'Debug display mode to set when releasing.';
+
+$string['configdebugreleaseafter_desc'] = 'Release will be triggered if last debug level over threshold is set since
+at least that amount (hours).';
+
+$string['configdebugreleasethreshold_desc'] = 'Release will be processed if debug level is over or equal to this debug level.';
+
+$string['configdebugreleasevalue_desc'] = 'Debug level to set when releasing.';
+
+$string['configfilelogging_desc'] = 'If enabled, events are logged in files additionnaly to the database records.';
+
+$string['configfixenabled_desc'] = 'If enabled, the fix SQL queries are run daily.';
+
+$string['configfixsql_desc'] = 'Input any sql statements that will run daily to fix data in moodle.';
+
+$string['configlongpagethreshold_desc'] = 'Threshold for long pages';
+
+$string['configslowpagederivthreshold_desc'] = 'Threshold that triggers administrator alerts telling too many slow pages are run.';
+
+$string['configslowpageexcludes_desc'] = 'Some urls may be known to be slow or needing significant processing time.
+You may give a list of url patterns (regexp like)';
+
+$string['configslowpagescounter_desc'] = 'Counts occurrences of slow pages exceeding the long page threshold time.';
+
+$string['configslowpagescounterrec_desc'] = 'The last counter state. Memorizes the counter at previous task run.';
+
+$string['configuserstosendto_desc'] = 'A list of emails, usernames or numeric user IDs comma separated.';
+
+$string['configverylongpagethreshold_desc'] = 'Threshold over which an immediate alert is sent.';
+
 $string['tracetoobig_desc'] = 'the trace is too big to be displayed online. You should truncate it and repeat the test case.';
+
+$string['datafixes_desc'] = 'Fixing data in moodle allow processing a symptomatic data correction in the moodle database. It will not fix
+the source of the errors, but allow securising an installation while bugfixes are identified and deployed.';
