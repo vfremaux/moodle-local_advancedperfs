@@ -34,11 +34,22 @@ $tasks = array(
         'month' => '*',
         'dayofweek' => '*'
     ),
+
     array(
         'classname' => 'local_advancedperfs\task\trackdebug_task',
         'blocking' => 0,
         'minute' => '30',
         'hour' => '*/2',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
+    ),
+
+    array(
+        'classname' => 'local_advancedperfs\task\datafix_task',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '1', // Once a day.
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*'

@@ -2,6 +2,9 @@
 .advancedperfs-time-benches {
     font-size:80%;
     padding:20px;
+    color: #000;
+    background-color: #eee;
+    font-size: 1.2em;
 }
 
 .perfs-visible {

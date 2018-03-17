@@ -8,3 +8,5 @@ A little set of librairies for easy tracing and benching moodle code (for develo
 2017110100 : Adds onlineusers and activeusers tracking on slow pages
 
 2017110800 : Add the trackdebug automated debug reset task
+
+2018013100 (3.1.0005) : Add the datafix task.

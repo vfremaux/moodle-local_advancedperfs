@@ -141,7 +141,7 @@ class performance_monitor {
 
         if ($category == 'dbcalls') {
             $dbusecontext = $this->seek_trace();
-            $context = str_replace($CFG->dirroot, '', @$dbusecontext['file']);
+            $context = str_replace($CFG->dirroot, '', @$dbusecontext['file'].'§'.@$dbusecontext['line']);
             @$this->dbcallers[$context]++;
         }
     }
@@ -500,7 +500,7 @@ class performance_monitor {
         $tostate = ($userpref) ? 0 : 1;
 
         $str = '<div class="advancedperfs-time-benches">';
-        $pix = '<img src="'.$OUTPUT->pix_url('viewdetails', 'local_advancedperfs').'" />';
+        $pix = $OUTPUT->pix_icon('viewdetails', '', 'local_advancedperfs');
         $pixlink = '<a id="perfs-pref-toggler" href="Javascript:perfs_panel_change_state('.$tostate.')">'.$pix.'</a>';
 
         $str .= '<ul class="nav-tabs"><li>'.get_string('perfs', 'local_advancedperfs').' '.$pixlink.'</li></ul>';

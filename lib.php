@@ -23,6 +23,14 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * This function is not implemented in thos plugin, but is needed to mark
+ * the vf documentation custom volume availability.
+ */
+function local_advancedperfs_supports_feature() {
+    assert(1);
+}
+
 function local_advancedperfs_enable() {
     set_config('enabled', 1, 'local_advancedperfs');
 }
