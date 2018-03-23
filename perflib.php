@@ -495,18 +495,18 @@ class performance_monitor {
                                    "<span id=\"{$catname}_mean\">$mean</span>", $occ);
         }
 
-        $userpref = $DB->get_field('user_preferences', 'value', array('name' => 'perfspanel', 'userid' => $USER->id));
-        $initialclass = ($userpref) ? 'perfs-visible' : 'perfs-hidden';
         $tostate = ($userpref) ? 0 : 1;
 
-        $str = '<div class="advancedperfs-time-benches">';
-        $pix = $OUTPUT->pix_icon('viewdetails', '', 'local_advancedperfs');
-        $pixlink = '<a id="perfs-pref-toggler" href="Javascript:perfs_panel_change_state('.$tostate.')">'.$pix.'</a>';
+        $str = new StdClass;
+        $attrs = array('id' => 'perf-panel-report');
+        $template->perfpix = $OUTPUT->pix_icon('viewdetails', '', 'local_advancedperfs', $attrs);
 
-        $str .= '<ul class="nav-tabs"><li>'.get_string('perfs', 'local_advancedperfs').' '.$pixlink.'</li></ul>';
+        $template->perfsstr = get_string('perfs', 'local_advancedperfs');
 
-        $str .= '<div id="timebenches" class="'.$initialclass.'">';
-        $str .= html_writer::table($table);
+        $userpref = $DB->get_field('user_preferences', 'value', array('name' => 'perfspanel', 'userid' => $USER->id));
+        $template->initialclass = ($userpref) ? 'perfs-visible' : 'perfs-hidden';
+
+        $template->benchtable = html_writer::table($table);
 
         $callerstr = get_string('dbcaller', 'local_advancedperfs');
         $callsstr = get_string('dbcalls', 'local_advancedperfs');
@@ -521,23 +521,14 @@ class performance_monitor {
             foreach($this->dbcallers as $ctx => $calls) {
                 $dbcallstable->data[] = array($ctx, $calls);
             }
-            $str .= html_writer::table($dbcallstable);
+            $template->dbcallstable = html_writer::table($dbcallstable);
         }
 
-        $slowpagesreportstr = get_string('slowpagesreport', 'local_advancedperfs');
-        $slowpagereporturl = new moodle_url('/local/advancedperfs/report.php');
-        $str .= '<div id="slowpages">';
-        if ($this->isslowpage) {
-            $str .= '<div><center>SLOW PAGE</center></div>';
-        }
-        $str .= '<a href="'.$slowpagereporturl.'">'.$slowpagesreportstr.'</a>';
-        $str .= '</div>';
+        $template->slowpagesreportstr = get_string('slowpagesreport', 'local_advancedperfs');
+        $template->slowpagereporturl = new moodle_url('/local/advancedperfs/report.php');
+        $template->slowpage = $this->isslowpage;
 
-        $str .= '</div>';
-
-        $str .= '</div>';
-
-        return $str;
+        return $OUTPUT->render_from_template('local_advancedperfs/advancedperfs', $template);
     }
 
     /**
