@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<libraries>
+  <library>
+    <location>__reference</location>
+    <name>Moodle core references for patchs</name>
+    <license>GPL</license>
+    <version>2.7</version>
+    <licenseversion>v.3</licenseversion>
+  </library>
+  <library>
+    <location>__patch</location>
+    <name>Patched files for Moodle</name>
+    <license>GPL</license>
+    <version>2.7</version>
+    <licenseversion>v.3</licenseversion>
+  </library>
+  <library>
+    <location>extra</location>
+    <name>Extra derrogating Moodle</name>
+    <license>GPL</license>
+    <version></version>
+    <licenseversion>v.3</licenseversion>
+  </library>
+</libraries>

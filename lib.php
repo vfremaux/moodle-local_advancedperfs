@@ -16,30 +16,29 @@
 
 /**
  * @package     local_advancedperfs
- * @subpackage  local
+ * @category    local
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
- * @copyright   (C) 2016 onwards Valery Fremaux
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die();
 
-$capabilities = array(
-    'local/advancedperfs:view' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
+/**
+ * This function is not implemented in thos plugin, but is needed to mark
+ * the vf documentation custom volume availability.
+ */
+function local_advancedperfs_supports_feature() {
+    assert(1);
+}
 
-    /*
-     * People having this capability will have debug on
-     */
-    'local/advancedperfs:hasdebugrole' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
-);
+function local_advancedperfs_enable() {
+    set_config('enabled', 1, 'local_advancedperfs');
+}
+
+function local_advancedperfs_disable() {
+    set_config('enabled', 0, 'local_advancedperfs');
+}
+
+function local_advancedperfs_enabled() {
+    return get_config('local_advancedperfs', 'enabled');
+}

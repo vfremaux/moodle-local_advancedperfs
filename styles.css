@@ -1,0 +1,53 @@
+
+.advancedperfs-time-benches {
+    font-size:80%;
+    padding:20px;
+    color: #000;
+    background-color: #eee;
+    font-size: 1.2em;
+}
+
+.perfs-visible {
+    display:blocks;
+}
+
+.perfs-hidden {
+    display:none;
+}
+
+.perfs-container {
+    display:table;
+}
+
+.perfs-row {
+    display:table-row;
+}
+
+.perfs-cell {
+    display:table-cell;
+    padding:10px;
+}
+
+.perfs-cell.globals {
+    text-align:center;
+}
+
+.perfs-big {
+    font-size:1.8em;
+    line-height:1.5em;
+}
+
+.perfs-small {
+    font-size:1.1em;
+    line-height:1.1em;
+}
+
+.perfs-max {
+    background-color:#A9A6D7;
+    padding:10px;
+}
+
+.perfs-min {
+    background-color:#D1D0EA;
+    padding:10px;
+}
