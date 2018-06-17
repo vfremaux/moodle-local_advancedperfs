@@ -17,34 +17,37 @@
 $string['advancedperfs:view'] = 'Voir les perfs avancées';
 $string['advancedperfs:hasdebugrole'] = 'A un rôle de debug';
 
+$string['actives'] = 'Actifs';
+$string['clear'] = 'Purger la trace';
+$string['cleartrace'] = 'Vider la trace';
 $string['configadvancedperfsenabled'] = 'Activation';
-$string['configadvancedperfsenabled_desc'] = 'Si activé, des mesure de temps d\'exécution détaillées sont affichées pour l\'administrateur.';
+$string['configdebugdisplayreleasevalue_desc'] = '';
+$string['configdebugdisplayreleasevalue'] = 'Mode d\'affichage du déboggage par défaut';
+$string['configdebugreleaseafter_desc'] = 'Modifiera les valeurs de déboggage si le niveau de déboggage est supérieur ou égal au seuil depuis au moins ce temps (en heure).';
+$string['configdebugreleasethreshold_desc'] = 'Modifiera les valeurs de déboggage si le niveau de déboggage est supérieur ou égal à ce seuil.';
+$string['configdebugreleasevalue_desc'] = 'Le niveau de déboggage après relâchement.';
+$string['configdebugreleaseafter'] = 'Relâcher le déboggage au bout de';
+$string['configdebugreleasethreshold'] = 'Seuil de relâchement du déboggage';
+$string['configdebugreleasevalue'] = 'Valeur de déboggage par défaut';
 $string['configfilelogging'] = 'Activer la journalisation fichiers';
-$string['configfilelogging_desc'] = 'Si activé, les événements sont journlisés en fichiers.';
 $string['configlongpagethreshold'] = 'Temps de page longue';
-$string['configlongpagethreshold_desc'] = 'Seuil de temps (en secondes) au dela duquel une page est considérée comme longue.';
 $string['configslowpagederiv'] = 'Variation de pages lentes';
-$string['configslowpagederiv_desc'] = 'La valeur instantanée de la dérivée du compteur (pages lentes/minute).';
 $string['configslowpagederivthreshold'] = 'Seuil d\'alerte sur la dérivée';
-$string['configslowpagederivthreshold_desc'] = 'Seuil au dela duquel l\'accroissement du nombre de pages lentes doit être signalé aux administrateurs.';
 $string['configslowpagescounter'] = 'Compteur de pages lentes';
-$string['configslowpagescounter_desc'] = 'Compte les occurences des pages exédent le seuil de temps \'long\'.';
 $string['configslowpagescounterrec'] = 'Mémoire de compteur (N-1)';
-$string['configslowpagescounterrec_desc'] = 'Le dernier état de compteur à l\'exécution de tâche précédente.';
 $string['configuserstosendto'] = 'Utilisateurs à avertir';
-$string['configuserstosendto_desc'] = 'Une liste à virgules de références d\'utilisateurs donnés par leur courriel, leur identifiant ou leur ID numérique.';
 $string['configverylongpagethreshold'] = 'Temps de page très longue';
-$string['configverylongpagethreshold_desc'] = 'Seuil de temps d\'exécution au dela duquel une alerte immédiate est envoyée aux administrateurs.';
 $string['content'] = 'Contenu';
 $string['daysslow'] = 'Jours lents';
 $string['db'] = 'DB';
 $string['dbcalls'] = 'DB';
 $string['dbcallsdist'] = 'Appels à la base';
-$string['dbtimedist'] = 'Temps passé dans la base';
 $string['dbquerydist'] = 'distribution du nombre d\'appels';
 $string['dbratiodist'] = 'Taux de temps de calcul dans la base';
-$string['distribution'] = 'Distribution';
+$string['dbtimedist'] = 'Temps passé dans la base';
+$string['debugtrack'] = 'Relâchement automatique du déboggage';
 $string['distinctusers'] = 'Utilisateurs distincts';
+$string['distribution'] = 'Distribution';
 $string['envusers'] = 'Utilisateurs dans l\'environnement';
 $string['footer'] = 'Footer';
 $string['header'] = 'Header';
@@ -52,14 +55,21 @@ $string['init'] = 'Initialisation';
 $string['layoutinit'] = 'Layout intialisations';
 $string['location'] = 'Emplacement';
 $string['max'] = 'max';
+$string['mean'] = 'Moyenne (SP/j)';
 $string['mean'] = 'moy.';
 $string['mem'] = 'Memoire';
 $string['min'] = 'min';
-$string['nothingsince'] = 'Rien depuis';
+$string['mostaffecteduser'] = 'Utilisateur le plus affecté';
 $string['noroles'] = 'Aucun rôle';
+$string['noslowpages'] = 'Pas de pages lentes détectées.';
+$string['nothingsince'] = 'Rien depuis';
+$string['nothingsince'] = 'Rien depuis';
 $string['num'] = 'Ocurrences';
+$string['numusersaffected'] = 'Nombre d\'utilisateurs affectés';
 $string['occurrences'] = 'ocurrences';
 $string['pluginname'] = 'Performances avancées';
+$string['range'] = 'Période';
+$string['ratioaffectedusers'] = 'Ratio des utilisateurs affectés';
 $string['reset'] = 'RAZ';
 $string['setup'] = 'Initial Setup';
 $string['since'] = 'Depuis';
@@ -73,17 +83,15 @@ $string['timeline'] = 'Calendrier des pages lentes (nombre par jour)';
 $string['timerelmem'] = 'Temps passé vs. mémoire consomée';
 $string['timerelusers'] = 'Temps passé vs. utilisateurs présents';
 $string['timespent'] = 'Temps de calcul';
-$string['mean'] = 'Moyenne (SP/j)';
-$string['range'] = 'Période';
-$string['nothingsince'] = 'Rien depuis';
+$string['trace'] = 'Trace technique';
+$string['tracetoobig'] = 'Le fichier trace est trop grand';
+$string['tracetoobig_desc'] = 'Le fichier de trace est trop grand pour être téléchargé. Vous devriez le vider et répeter votre cas de test.';
+$string['taskmonitor'] = 'Tâche d\'observation continue des performances';
+$string['tasktrackdebug'] = 'Tâche de relâchement du déboggage.';
 $string['urls'] = 'Urls';
 $string['urlsbyfreq'] = 'Fréquence par Url de base';
 $string['users'] = 'Utilisateurs';
 $string['worstday'] = 'Jour le plus lent';
-$string['numusersaffected'] = 'Nombre d\'utilisateurs affectés';
-$string['mostaffecteduser'] = 'Utilisateur le plus affecté';
-$string['ratioaffectedusers'] = 'Ratio des utilisateurs affectés';
-$string['noslowpages'] = 'Pas de pages lentes détectées.';
 
 $string['debugusers'] = 'Utilisateurs de debug';
 $string['debugfromips'] = 'IPs de debug';
@@ -91,3 +99,24 @@ $string['configdebugusers'] = 'Les utilisateurs dont les IDs figurent dans cette
 $string['configdebugfromips'] = 'Les sessions provenant de ces IPs sont placées en mode déboggage.';
 $string['unconnectedusers'] = 'Non connectés';
 
+$string['configadvancedperfsenabled_desc'] = 'Si activé, des mesure de temps d\'exécution détaillées sont affichées pour
+l\'administrateur.';
+
+$string['configfilelogging_desc'] = 'Si activé, les événements sont journlisés en fichiers.';
+
+$string['configlongpagethreshold_desc'] = 'Seuil de temps (en secondes) au dela duquel une page est considérée comme longue.';
+
+$string['configslowpagederiv_desc'] = 'La valeur instantanée de la dérivée du compteur (pages lentes/minute).';
+
+$string['configslowpagederivthreshold_desc'] = 'Seuil au dela duquel l\'accroissement du nombre de pages lentes doit être signalé
+aux administrateurs.';
+
+$string['configslowpagescounter_desc'] = 'Compte les occurences des pages exédent le seuil de temps \'long\'.';
+
+$string['configslowpagescounterrec_desc'] = 'Le dernier état de compteur à l\'exécution de tâche précédente.';
+
+$string['configuserstosendto_desc'] = 'Une liste à virgules de références d\'utilisateurs donnés par leur courriel, leur identifiant
+ou leur ID numérique.';
+
+$string['configverylongpagethreshold_desc'] = 'Seuil de temps d\'exécution au dela duquel une alerte immédiate est envoyée
+aux administrateurs.';
