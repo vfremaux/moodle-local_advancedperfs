@@ -141,7 +141,7 @@ class performance_monitor {
 
         if ($category == 'dbcalls') {
             $dbusecontext = $this->seek_trace();
-            $context = str_replace($CFG->dirroot, '', @$dbusecontext['file'].'§'.@$dbusecontext['line']);
+            $context = str_replace($CFG->dirroot, '', @$dbusecontext['file'].'$'.@$dbusecontext['line']);
             @$this->dbcallers[$context]++;
         }
     }
@@ -495,15 +495,14 @@ class performance_monitor {
                                    "<span id=\"{$catname}_mean\">$mean</span>", $occ);
         }
 
-        $tostate = ($userpref) ? 0 : 1;
-
-        $str = new StdClass;
+        $template = new StdClass;
         $attrs = array('id' => 'perf-panel-report');
         $template->perfpix = $OUTPUT->pix_icon('viewdetails', '', 'local_advancedperfs', $attrs);
 
         $template->perfsstr = get_string('perfs', 'local_advancedperfs');
 
         $userpref = $DB->get_field('user_preferences', 'value', array('name' => 'perfspanel', 'userid' => $USER->id));
+        $tostate = ($userpref) ? 0 : 1;
         $template->initialclass = ($userpref) ? 'perfs-visible' : 'perfs-hidden';
 
         $template->benchtable = html_writer::table($table);
