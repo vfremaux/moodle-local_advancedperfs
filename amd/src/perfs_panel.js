@@ -22,26 +22,30 @@
  * @package    local_advancedperfs
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery'], function($) {
+define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
 
     return {
         init: function() {
+            $('#perf-panel-report').bind('changepanel', this.change_state);
+
+            log.debug('AMD advanced perfs initialized');
         },
 
-        change_state: function(state) {
-            var url = M.cfg.wwwroot + '/local/advancedperfs/ajax/services.php?what=changepanelpreference&state=' + state;
+        change_state: function() {
 
-            if (state) {
-                $('#timebenches').addClass('perfs-visible');
-                $('#timebenches').removeClass('perfs-hidden');
-                $('#perfs-pref-toggler').attr('href', 'Javascript:perfs_panel_change_state(0)');
+            var hiddenstate = $('#timebenches-panel').hasClass('perfs-hidden');
+
+            if (hiddenstate) {
+                $('#timebenches-panel').addClass('perfs-visible');
+                $('#timebenches-panel').removeClass('perfs-hidden');
             } else {
-                $('#timebenches').addClass('perfs-hidden');
-                $('#timebenches').removeClass('perfs-visible');
-                $('#perfs-pref-toggler').attr('href', 'Javascript:perfs_panel_change_state(1)');
+                $('#timebenches-panel').addClass('perfs-hidden');
+                $('#timebenches-panel').removeClass('perfs-visible');
             }
 
-            $.get(url, function(data, status){});
+            // Update stored state.
+            var url = cfg.wwwroot + '/local/advancedperfs/ajax/services.php?what=changepanelpreference&state=' + hiddenstate;
+            $.get(url, function(){});
         }
     };
 

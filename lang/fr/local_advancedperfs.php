@@ -23,10 +23,14 @@ $string['cleartrace'] = 'Vider la trace';
 $string['configadvancedperfsenabled'] = 'Activation';
 $string['configdebugdisplayreleasevalue'] = 'Mode d\'affichage du déboggage par défaut';
 $string['configdebugfromips'] = 'Les sessions provenant de ces IPs sont placées en mode déboggage.';
+$string['configdebugreleaseafter_desc'] = 'Modifiera les valeurs de déboggage si le niveau de déboggage est supérieur ou égal au seuil depuis au moins ce temps (en heure).';
+$string['configdebugreleasethreshold_desc'] = 'Modifiera les valeurs de déboggage si le niveau de déboggage est supérieur ou égal à ce seuil.';
 $string['configdebugreleaseafter'] = 'Relâcher le déboggage au bout de';
 $string['configdebugreleasethreshold'] = 'Seuil de relâchement du déboggage';
 $string['configdebugreleasevalue'] = 'Valeur de déboggage par défaut';
 $string['configdebugusers'] = 'Les utilisateurs dont les IDs figurent dans cette liste (à virgules) sont passés en mode déboggage.';
+$string['configdebugnotifyrelease'] = 'Notifier l\'administrateur';
+$string['configdebugnotifyrelease_desc'] = 'Si actif, un courriel est envoyé à l\'administrateur lors du relâchement.';
 $string['configfilelogging'] = 'Activer la journalisation fichiers';
 $string['configfixenabled'] = 'Activer la correction de données';
 $string['configfixsql'] = 'SQL de correction';
@@ -95,6 +99,8 @@ $string['urls'] = 'Urls';
 $string['urlsbyfreq'] = 'Fréquence par Url de base';
 $string['users'] = 'Utilisateurs';
 $string['worstday'] = 'Jour le plus lent';
+
+$string['tracetoobig_desc'] = 'Le fichier de trace est trop grand pour être téléchargé. Vous devriez le vider et répeter votre cas de test.';
 
 $string['configdebugdisplayreleasevalue_desc'] = '';
 
