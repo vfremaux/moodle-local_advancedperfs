@@ -22,7 +22,7 @@
  * @package    local_advancedperfs
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/log'], function($, log) {
+define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
 
     return {
         init: function() {
@@ -44,8 +44,8 @@ define(['jquery', 'core/log'], function($, log) {
             }
 
             // Update stored state.
-            var url = M.cfg.wwwroot + '/local/advancedperfs/ajax/services.php?what=changepanelpreference&state=' + hiddenstate;
-            $.get(url, function(data, status){});
+            var url = cfg.wwwroot + '/local/advancedperfs/ajax/services.php?what=changepanelpreference&state=' + hiddenstate;
+            $.get(url, function(){});
         }
     };
 

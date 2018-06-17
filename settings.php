@@ -114,6 +114,12 @@ if ($hassiteconfig) {
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
+    $key = 'local_advancedperfs/debugnotifyrelease';
+    $label = get_string('configdebugnotifyrelease', 'local_advancedperfs');
+    $desc = get_string('configdebugnotifyrelease_desc', 'local_advancedperfs');
+    $default = 0;
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
+
     $ADMIN->add('development', $settings);
 
     $label = get_string('trace', 'local_advancedperfs');

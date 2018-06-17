@@ -57,6 +57,14 @@ class trackdebug_task extends \core\task\scheduled_task {
             set_config('themedesignermode', 0);
             add_to_config_log('debug', $olddebug, $config->debugreleasevalue);
             add_to_config_log('debugdisplay', $olddebugdisplay, $config->debugdisplayreleasevalue);
+
+            if (!empty($config->debugnotifyrelease)) {
+                $a = get_admin();
+
+                $notification = 'Debug mode is at '.$olddebug.' for at least '.$config->canceldebugafter." hours\n\n";
+                $notification = 'Passing from '.$oldddebug.' to '.$config->debugreleasevalue;
+                email_to_user($a, $a, '['.$SITE->shortname.'] Releasing debug mode ', $notification);
+            }
         }
     }
 }
