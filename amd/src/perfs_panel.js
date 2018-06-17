@@ -26,7 +26,7 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
 
     return {
         init: function() {
-            $('#perf-panel-report').bind('changepanel', this.change_state);
+            $('#perf-panel-report').bind('click', this.change_state);
 
             log.debug('AMD advanced perfs initialized');
         },

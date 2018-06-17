@@ -358,6 +358,10 @@ class performance_monitor {
             $message .= "\n";
 
             $message .= "# context details:\n";
+            $cmd = 'hostname';
+            $res = exec($cmd, $output, $return);
+            $hostname = implode("\n", $output);
+            $message .= "host: $hostname\n";
             $message .= "Course: {$COURSE->id}\n";
             $message .= "User: {$USER->id}\n";
             $message .= "Page: {$PAGE->pagetype}\n";
