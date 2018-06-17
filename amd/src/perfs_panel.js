@@ -22,7 +22,7 @@
  * @package    local_advancedperfs
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/config', 'core/log'], function($, config, log) {
+define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
 
     return {
         init: function() {
