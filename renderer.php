@@ -320,14 +320,14 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             $options['xmax'] = 0;
             foreach ($graphdata as $d) {
                 $moused = round($d->memused / 1000000, 2);
-                if (!array_key_exists($url, $data)) {
+                if (!array_key_exists($d->url, $data)) {
                     // Keep highest.
-                    $ticks[] = "'".$url."'";
+                    $ticks[] = "'".$d->url."'";
                     $data[] = $moused;
 
                     // For jqw.
                     $rec = new StdClass();
-                    $rec->url = $url;
+                    $rec->url = $d->url;
                     $rec->memused = round($d->memused / 1000000, 2);
                     $jqwdata[] = $rec;
                 }
@@ -559,7 +559,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             @$dist[floor($p->dbcalls / $bwidth)]++;
         }
 
-        $graph = $this->build_graph($dist);
+        $graph = $this->build_graph($dist, $bdiv, $bwidth);
 
         $title = get_string('dbquerydist', 'local_advancedperfs');
         $options['id'] = uniqid();
@@ -591,7 +591,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             @$dist[floor($dbratio / $bwidth)]++;
         }
 
-        $graph = $this->build_graph($dist);
+        $graph = $this->build_graph($dist, $bdiv, $bwidth);
 
         $title = get_string('dbratiodist', 'local_advancedperfs');
         $options['id'] = uniqid();
@@ -606,7 +606,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    protected function build_graph($dist) {
+    protected function build_graph($dist, $bdiv, $bwidth) {
 
         // Fill null ranges.
         for ($i = 0; $i < $bdiv; $i++) {
