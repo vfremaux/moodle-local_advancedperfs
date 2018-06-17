@@ -187,25 +187,29 @@ function debug_close_trace() {
 /**
  * outputs into an open trace (ligther than debug_trace)
  */
-function debug_trace_open($str) {
+function debug_trace_open($str, $label = '') {
     global $CFG;
 
     if (!is_null($CFG->tracehandle)) {
-        fputs($CFG->tracehandle, @$CFG->transID." ------- ". date('Y-m-d H:i', time())." -------\n".$str."\n");
+        fputs($CFG->tracehandle, @$CFG->transID." ------- ". date('Y-m-d H:i', time())." ------- {$label} \n".$str."\n");
     }
 }
 
 /**
  * write to the trace
  */
-function debug_trace($str) {
+function debug_trace($str, $label = '') {
     global $CFG;
 
+    if (is_object($str) || is_array($str)) {
+        $str = print_r($str, true);
+    }
+
     if (!empty($CFG->tracehandle)) {
-        debug_trace_open($str);
+        debug_trace_open($str, $label);
     } else {
         if (debug_open_trace()) {
-            debug_trace_open($str);
+            debug_trace_open($str, $label);
             debug_close_trace();
         }
     }
