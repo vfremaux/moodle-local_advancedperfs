@@ -45,7 +45,7 @@ define(['jquery', 'core/config', 'core/log'], function($, cfg, log) {
 
             // Update stored state.
             var url = cfg.wwwroot + '/local/advancedperfs/ajax/services.php?what=changepanelpreference&state=' + hiddenstate;
-            $.get(url, function(data, status){});
+            $.get(url, function(){});
         }
     };
 
