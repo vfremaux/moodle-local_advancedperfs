@@ -80,6 +80,10 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
                 $this->maxmem = 0;
                 $this->minindb = 10000000;
                 $this->maxindb = 0;
+                $this->minonline = 10000000;
+                $this->maxonline = 0;
+                $this->minactive = 10000000;
+                $this->maxactive = 0;
                 foreach ($this->slowpages as $pid => $p) {
 
                     if (!empty($this->excludepatterns)) {
@@ -99,8 +103,12 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
                     $this->maxdbcalls = max($this->maxdbcalls, $p->dbcalls);
                     $this->minmem = min($this->minmem, $p->memused);
                     $this->maxmem = max($this->maxmem, $p->memused);
-                    $this->minindb = min($this->minindb, $p->timeindb);
-                    $this->maxindb = max($this->maxindb, $p->timeindb);
+                    $this->minindb = min($this->minindb, 0 + $p->timeindb);
+                    $this->maxindb = max($this->maxindb, 0 + $p->timeindb);
+                    $this->minonline = min($this->minonline, 0 + $p->onlineusers);
+                    $this->maxonline = max($this->maxonline, 0 + $p->onlineusers);
+                    $this->minactive = min($this->minactive, 0 + $p->activeusers);
+                    $this->maxactive = max($this->maxactive, 0 + $p->activeusers);
                 }
             }
         }
@@ -176,6 +184,15 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         $str .= '<div class="perfs-cell globals">';
         $str .= get_string('worstday', 'local_advancedperfs');
         $str .= '</div>';
+        $str .= '<div class="perfs-cell globals">';
+        $str .= get_string('onlines', 'local_advancedperfs');
+        $str .= '</div>';
+        $str .= '<div class="perfs-cell globals">';
+        $str .= get_string('actives', 'local_advancedperfs');
+        $str .= '</div>';
+        $str .= '<div class="perfs-cell globals">';
+        $str .= get_string('mem', 'local_advancedperfs');
+        $str .= '</div>';
         $str .= '</div>';
 
         $str .= '<div class="perfs-row">';
@@ -199,6 +216,34 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         $str .= '<div class="perfs-cell perfs-big globals">';
         $str .= $slowest;
         $str .= '</div>';
+
+        $str .= '<div class="perfs-cell perfs-small globals">';
+        $str .= '<div class="perfs-small perfs-max globals">';
+        $str .= $this->maxonline;
+        $str .= '</div>';
+        $str .= '<div class="perfs-small perfs-min globals">';
+        $str .= $this->minonline;
+        $str .= '</div>';
+        $str .= '</div>';
+
+        $str .= '<div class="perfs-cell perfs-small globals">';
+        $str .= '<div class="perfs-small perfs-max globals">';
+        $str .= $this->maxactive;
+        $str .= '</div>';
+        $str .= '<div class="perfs-small perfs-min globals">';
+        $str .= $this->minactive;
+        $str .= '</div>';
+        $str .= '</div>';
+
+        $str .= '<div class="perfs-cell perfs-small globals">';
+        $str .= '<div class="perfs-small perfs-max globals">';
+        $str .= $this->format_mem($this->maxmem);
+        $str .= '</div>';
+        $str .= '<div class="perfs-small perfs-min globals">';
+        $str .= $this->format_mem($this->minmem);
+        $str .= '</div>';
+        $str .= '</div>';
+
         $str .= '</div>';
 
         $str .= '</div>';
@@ -275,14 +320,14 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             $options['xmax'] = 0;
             foreach ($graphdata as $d) {
                 $moused = round($d->memused / 1000000, 2);
-                if (!array_key_exists($url, $data)) {
+                if (!array_key_exists($d->url, $data)) {
                     // Keep highest.
-                    $ticks[] = "'".$url."'";
+                    $ticks[] = "'".$d->url."'";
                     $data[] = $moused;
 
                     // For jqw.
                     $rec = new StdClass();
-                    $rec->url = $url;
+                    $rec->url = $d->url;
                     $rec->memused = round($d->memused / 1000000, 2);
                     $jqwdata[] = $rec;
                 }
@@ -358,6 +403,60 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         $options['height'] = '680';
         $title = get_string('timerelmem', 'local_advancedperfs');
         $str = local_vflibs_jqplot_print_labelled_graph($data, $title, 'timememmap', $options);
+
+        return $str;
+    }
+
+    public function time_rel_users() {
+        global $DB, $CFG;
+
+        $options['xmin'] = 0;
+        $options['xmax'] = 0;
+        $options['ymin'] = 0;
+        $options['ymax'] = 0;
+
+        $data = array();
+        if ($graphdata = $DB->get_records('local_advancedperfs_slowp', array(), 'timespent')) {
+            $datacount = count($graphdata);
+            foreach ($graphdata as $g) {
+
+                if ($options['xmin'] != 0) {
+                    $options['xmin'] = min($g->timespent, $options['xmin']);
+                } else {
+                    $options['xmin'] = $g->timespent;
+                }
+                $options['xmax'] = max($g->timespent, $options['xmax']);
+
+                if ($options['ymin'] != 0) {
+                    $options['ymin'] = min($g->onlineusers, $g->activeusers, $options['ymin']);
+                } else {
+                    $options['ymin'] = min($g->onlineusers, $g->activeusers);
+                }
+                $options['ymax'] = max($g->onlineusers, $g->activeusers, $options['ymax']);
+
+                // Feed data table.
+                $data[0][] = $g->timespent;
+                $data[1][] = $g->onlineusers;
+                $data[2][] = $g->activeusers;
+                if ($datacount < 30) {
+                    $data[2][] = str_replace($CFG->wwwroot, '', $g->url);
+                } else {
+                    // Too many urls to be displayed.
+                    $data[2][] = '';
+                }
+            }
+            $options['ymax'] = ceil($options['ymax']);
+            $options['ymin'] = floor($options['ymin']);
+        }
+
+        $options['xlabel'] = get_string('timespent', 'local_advancedperfs');
+        $options['ylabel'] = get_string('envusers', 'local_advancedperfs');
+        $options['xunit'] = ' s';
+        $options['yunit'] = ' u';
+        $options['width'] = '680';
+        $options['height'] = '680';
+        $title = get_string('timerelusers', 'local_advancedperfs');
+        $str = local_vflibs_jqplot_print_labelled_graph($data, $title, 'timeusersmap', $options);
 
         return $str;
     }
@@ -460,7 +559,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             @$dist[floor($p->dbcalls / $bwidth)]++;
         }
 
-        $graph = $this->build_graph($dist);
+        $graph = $this->build_graph($dist, $bdiv, $bwidth);
 
         $title = get_string('dbquerydist', 'local_advancedperfs');
         $options['id'] = uniqid();
@@ -492,7 +591,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
             @$dist[floor($dbratio / $bwidth)]++;
         }
 
-        $graph = $this->build_graph($dist);
+        $graph = $this->build_graph($dist, $bdiv, $bwidth);
 
         $title = get_string('dbratiodist', 'local_advancedperfs');
         $options['id'] = uniqid();
@@ -507,7 +606,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    protected function build_graph($dist) {
+    protected function build_graph($dist, $bdiv, $bwidth) {
 
         // Fill null ranges.
         for ($i = 0; $i < $bdiv; $i++) {
@@ -583,9 +682,12 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
                     }
                 }
                 $userurl = new moodle_url('/user/view.php', array('id' => $userid));
+                $userlink = '<a href="'.$userurl.'">'.fullname($user).'</a>';
+            } else {
+                $userlink = get_string('unconnectedusers', 'local_advancedperfs');
             }
 
-            $table->data[] = array('<a href="'.$userurl.'">'.fullname($user).'</a>', $sp);
+            $table->data[] = array($userlink, $sp);
             $i++;
             if ($i > 50) {
                 break;
@@ -744,5 +846,15 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
 
     public function is_empty() {
         return empty($this->slowpages);
+    }
+
+    protected function format_mem($memsize) {
+        if ($memsize < 1024) {
+            return $memsize.'b';
+        } else if ($memsize < 1024 * 1024) {
+            return sprintf('%.2f', $memsize / 1024).'k';
+        } else {
+            return sprintf('%.2f', $memsize / (1024 * 1024)).'M';
+        }
     }
 }
