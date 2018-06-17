@@ -81,5 +81,9 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, ''));
 
     $ADMIN->add('development', $settings);
+
+    $label = get_string('trace', 'local_advancedperfs');
+    $traceurl = new moodle_url('/local/advancedperfs/trace.php');
+    $ADMIN->add('development', new admin_externalpage('trace', $label, $traceurl, 'moodle/site:config'));
 }
 

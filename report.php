@@ -96,6 +96,7 @@ switch ($view) {
     case 'users';
         echo $renderer->users_globals();
         echo $renderer->top_affected_users();
+        echo $renderer->time_rel_users();
         break;
 
     case 'urls';
