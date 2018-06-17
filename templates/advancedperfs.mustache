@@ -1,0 +1,30 @@
+
+
+
+<!-- advancedperfs -->
+<div class="advancedperfs-time-benches">
+
+    <ul class="nav-tabs">
+        <li>{{perfsstr}} {{{perfpix}}}</li>
+    </ul>
+
+    <div id="timebenches-panel" class="{{initialclass}}">
+
+        <div id="advanced-benches">
+            {{{benchtable}}}
+        </div>
+
+        <div id="db-calls">
+            {{{dbcallstable}}}
+        </div>
+
+        <div id="slowpages">
+            {{#slowpage}}
+            <div><center>SLOW PAGE</center></div>';
+            {{/slowpage}}
+            <a href="{{{slowpagereporturl}}}">{{slowpagesreportstr}}</a>
+        </div>
+
+    </div>
+</div>
+<!-- /advancedperfs -->

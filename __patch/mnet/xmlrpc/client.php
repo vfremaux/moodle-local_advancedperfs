@@ -159,7 +159,7 @@ class mnet_xmlrpc_client {
         if (function_exists('punchout')) {
             punchout('rpccalls', '');
         }
-        // PATCH-
+        // PATCH-.
         mnet_debug("managed to complete a curl request");
         $timestamp_receive = time();
 

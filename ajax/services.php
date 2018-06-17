@@ -37,7 +37,8 @@ $PAGE->set_context($context);
 if ($action == 'changepanelpreference') {
     $state = required_param('state', PARAM_BOOL);
 
-    if ($pref = $DB->get_record('user_preferences', array('userid' => $USER->id, 'name' => 'perfspanel'))) {
+    $params = array('userid' => $USER->id, 'name' => 'perfspanel');
+    if ($pref = $DB->get_record('user_preferences', $params)) {
         $pref->value = $state;
         $DB->update_record('user_preferences', $pref);
     } else {
