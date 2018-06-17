@@ -15,43 +15,30 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Definition of advancedperfs.
- *
  * @package     local_advancedperfs
- * @category    task
+ * @category    local
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com> (MyLearningFactory.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = array(
-    array(
-        'classname' => 'local_advancedperfs\task\monitor_task',
-        'blocking' => 0,
-        'minute' => '30',
-        'hour' => '*',
-        'day' => '*',
-        'month' => '*',
-        'dayofweek' => '*'
-    ),
+/**
+ * This function is not implemented in thos plugin, but is needed to mark
+ * the vf documentation custom volume availability.
+ */
+function local_advancedperfs_supports_feature() {
+    assert(1);
+}
 
-    array(
-        'classname' => 'local_advancedperfs\task\trackdebug_task',
-        'blocking' => 0,
-        'minute' => '30',
-        'hour' => '*/2',
-        'day' => '*',
-        'month' => '*',
-        'dayofweek' => '*'
-    ),
+function local_advancedperfs_enable() {
+    set_config('enabled', 1, 'local_advancedperfs');
+}
 
-    array(
-        'classname' => 'local_advancedperfs\task\datafix_task',
-        'blocking' => 0,
-        'minute' => '0',
-        'hour' => '1', // Once a day.
-        'day' => '*',
-        'month' => '*',
-        'dayofweek' => '*'
-    )
-);
+function local_advancedperfs_disable() {
+    set_config('enabled', 0, 'local_advancedperfs');
+}
+
+function local_advancedperfs_enabled() {
+    return get_config('local_advancedperfs', 'enabled');
+}

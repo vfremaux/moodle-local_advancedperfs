@@ -53,11 +53,10 @@ class performance_monitor {
      * in the Moodle code.
      */
     protected function __construct() {
-        global $DB;
-
         $this->perfcategories = array('overall', 'dbcalls', 'rpccalls', 'header', 'content', 'footer');
 
         $this->perfs = array();
+
         foreach ($this->perfcategories as $cat) {
             $this->init_cat($cat);
         }
@@ -142,7 +141,7 @@ class performance_monitor {
 
         if ($category == 'dbcalls') {
             $dbusecontext = $this->seek_trace();
-            $context = str_replace($CFG->dirroot, '', @$dbusecontext['file']);
+            $context = str_replace($CFG->dirroot, '', @$dbusecontext['file'].'$'.@$dbusecontext['line']);
             @$this->dbcallers[$context]++;
         }
     }
@@ -157,7 +156,7 @@ class performance_monitor {
         // Remove first (here !), second (known in dmllib) and third (db call).
 
         $t = array_shift($trace);
-        while (preg_match('/perflib|moodle_database|moodlelib/', $t['file'])) {
+        while (preg_match('/perflib|moodle_database|moodlelib/', @$t['file'])) {
             $t = array_shift($trace);
         }
 
@@ -204,7 +203,7 @@ class performance_monitor {
      * @param string $bouncein a new category where to bounce a punchin
      */
     public function punchout($category, $bouncein = '', $file = '', $line = '') {
-        global $OUTPUT, $CFG, $DB, $PAGE, $USER;
+        global $OUTPUT, $CFG, $DB, $PAGE, $USER, $COURSE;
 
         // Be carefull ! 'dbcalls' patched category is inside "get_records" !
         if (empty($this->staticconfig) && $category != 'dbcalls') {
@@ -318,7 +317,7 @@ class performance_monitor {
                 WHERE
                     lastaccess > ?
             ";
-            $activeusers = $DB->count_records_sql($sql, array(time() - ($settings['longpagethreshold'] * MINSECS)));
+            $activeusers = $DB->count_records_sql($sql, array(time() - ($settings['longpagethreshold'])));
 
             // Trace slowpage info.
             $slowpage = new StdClass;
@@ -333,21 +332,89 @@ class performance_monitor {
             $slowpage->activeusers = $activeusers;
             $DB->insert_record('local_advancedperfs_slowp', $slowpage);
 
+            $shorturl = str_replace($CFG->wwwroot, '', $PAGE->url);
+            $ts = sprintf('%.2f', $slowpage->timespent);
+            $tdb = sprintf('%.3f', $slowpage->timeindb);
+            $benchdata = '['.date('Y-m-d H:i:s', time()).'] '.$ts.'s DB:'.$tdb.'s M:'.round($slowpage->memused / 1024).'kb';
+
             if (!empty($settings['filelogging'])) {
                 $log = fopen($CFG->dataroot.'/slowpages.log', 'a');
-                $shorturl = str_replace($CFG->wwwroot, '', $PAGE->url);
-                $ts = sprintf('%.2f', $slowpage->timespent);
-                $tdb = sprintf('%.3f', $slowpage->timeindb);
-                fputs($log, '['.date('Y-m-d H:i:s', time()).'] '.$ts.' DB:'.$tdb.' M:'.$slowpage->memused.' '.$shorturl."\n");
+                fputs($log, $benchdata.' '.$shorturl."\n");
                 fclose($log);
             }
 
             $this->isslowpage = true;
         }
 
+        // Very Long Page threshold is over longpagethreshold. Bench data are available.
         if ($duration > $settings['verylongpagethreshold']) {
             // Push an immediate alert.
-            $message = 'Moodle has run an unusually long page. this may denote an exploitation desease.';
+            $message = "Moodle has run an unusually long page.\n\n";
+
+            $message .= "# Configuration details:\n";
+            $message .= "Debug mode: ".$CFG->debug."\n";
+            $message .= "Theme designer mode: ".$CFG->themedesignermode."\n";
+            $message .= "Javascript caching: ".$CFG->cachejs."\n";
+            $message .= "\n";
+
+            $message .= "# context details:\n";
+            $cmd = 'hostname';
+            $res = exec($cmd, $output, $return);
+            $hostname = implode("\n", $output);
+            $message .= "host: $hostname\n";
+            $message .= "Course: {$COURSE->id}\n";
+            $message .= "User: {$USER->id}\n";
+            $message .= "Page: {$PAGE->pagetype}\n";
+            $message .= "\n";
+
+            $message .= "# Technical details:\n";
+
+            $message .= 'Url required: '.$shorturl."\n";
+            $message .= 'Time bench:'.$benchdata."\n";
+            $message .= 'Online users (last access younger than session length): '.$onlineusers."\n";
+            $message .= 'Active users (last access younger than '.$settings['longpagethreshold'].'sec): '.$activeusers."\n";
+
+            // Collect more info using nagios probes if avaliable.
+             if (is_executable('/usr/lib/nagios/plugins/check_mysql_health')) {
+                $cmd = "/usr/lib/nagios/plugins/check_mysql_health --hostname {$CFG->dbhost} --username {$CFG->dbuser} ";
+                $cmd .= "--password {$CFG->dbpass} --database {$CFG->dbname} --mode threads-running ";
+                $output = array();
+                exec($cmd, $output, $return);
+                $message .= "Mysql state: ".implode(' ', $output)."\n";
+             }
+
+            // Getting swap info.
+            if (is_executable('/usr/lib/nagios/plugins/check_swap')) {
+                $cmd = "/usr/lib/nagios/plugins/check_swap -w95 -c90 ";
+                $output = array();
+                exec($cmd, $output, $return);
+                $message .= "Server swap: ".implode(' ', $output)."\n";
+            }
+
+            // Getting free memory info.
+            if (is_executable('/usr/lib/nagios/plugins/check_mem')) {
+                $cmd = "/usr/lib/nagios/plugins/check_mem -f -w95 -c90 ";
+                $output = array();
+                exec($cmd, $output, $return);
+                $message .= "Server Free memory: ".implode(' ', $output)."\n";
+            }
+
+            // Getting cpu load info.
+            if (is_executable('/usr/lib/nagios/plugins/check_load')) {
+                $cmd = "/usr/lib/nagios/plugins/check_load -w40 -c60 ";
+                $output = array();
+                exec($cmd, $output, $return);
+                $message .= "Server CPU Load: ".implode(' ', $output)."\n";
+            }
+
+            // Getting processes info.
+            if (is_executable('/usr/lib/nagios/plugins/check_procs')) {
+                $cmd = "/usr/lib/nagios/plugins/check_procs";
+                $output = array();
+                exec($cmd, $output, $return);
+                $message .= "Server Processes: ".implode(' ', $output);
+            }
+
             advancedperfs_send_alert('VERY LONG PAGE', $message);
         }
 
@@ -432,18 +499,17 @@ class performance_monitor {
                                    "<span id=\"{$catname}_mean\">$mean</span>", $occ);
         }
 
+        $template = new StdClass;
+        $attrs = array('id' => 'perf-panel-report');
+        $template->perfpix = $OUTPUT->pix_icon('viewdetails', '', 'local_advancedperfs', $attrs);
+
+        $template->perfsstr = get_string('perfs', 'local_advancedperfs');
+
         $userpref = $DB->get_field('user_preferences', 'value', array('name' => 'perfspanel', 'userid' => $USER->id));
-        $initialclass = ($userpref) ? 'perfs-visible' : 'perfs-hidden';
         $tostate = ($userpref) ? 0 : 1;
+        $template->initialclass = ($userpref) ? 'perfs-visible' : 'perfs-hidden';
 
-        $str = '<div class="advancedperfs-time-benches">';
-        $pix = '<img src="'.$OUTPUT->pix_url('viewdetails', 'local_advancedperfs').'" />';
-        $pixlink = '<a id="perfs-pref-toggler" href="Javascript:perfs_panel_change_state('.$tostate.')">'.$pix.'</a>';
-
-        $str .= '<ul class="nav-tabs"><li>'.get_string('perfs', 'local_advancedperfs').' '.$pixlink.'</li></ul>';
-
-        $str .= '<div id="timebenches" class="'.$initialclass.'">';
-        $str .= html_writer::table($table);
+        $template->benchtable = html_writer::table($table);
 
         $callerstr = get_string('dbcaller', 'local_advancedperfs');
         $callsstr = get_string('dbcalls', 'local_advancedperfs');
@@ -458,23 +524,14 @@ class performance_monitor {
             foreach($this->dbcallers as $ctx => $calls) {
                 $dbcallstable->data[] = array($ctx, $calls);
             }
-            $str .= html_writer::table($dbcallstable);
+            $template->dbcallstable = html_writer::table($dbcallstable);
         }
 
-        $slowpagesreportstr = get_string('slowpagesreport', 'local_advancedperfs');
-        $slowpagereporturl = new moodle_url('/local/advancedperfs/report.php');
-        $str .= '<div id="slowpages">';
-        if ($this->isslowpage) {
-            $str .= '<div><center>SLOW PAGE</center></div>';
-        }
-        $str .= '<a href="'.$slowpagereporturl.'">'.$slowpagesreportstr.'</a>';
-        $str .= '</div>';
+        $template->slowpagesreportstr = get_string('slowpagesreport', 'local_advancedperfs');
+        $template->slowpagereporturl = new moodle_url('/local/advancedperfs/report.php');
+        $template->slowpage = $this->isslowpage;
 
-        $str .= '</div>';
-
-        $str .= '</div>';
-
-        return $str;
+        return $OUTPUT->render_from_template('local_advancedperfs/advancedperfs', $template);
     }
 
     /**
