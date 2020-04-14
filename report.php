@@ -23,7 +23,9 @@
  */
 require('../../config.php');
 require_once($CFG->dirroot.'/local/vflibs/jqplotlib.php');
+
 local_vflibs_require_jqplot_libs();
+
 $PAGE->requires->jquery_plugin('jqwidgets-barchart', 'local_vflibs');
 
 $view = optional_param('view', 'slowpages', PARAM_TEXT);
@@ -53,7 +55,6 @@ if ($action) {
 echo $OUTPUT->header();
 
 // Report global indicators.
-
 $renderer->load_data();
 
 if ($renderer->is_empty()) {

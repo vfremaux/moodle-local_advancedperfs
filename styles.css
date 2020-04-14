@@ -1,10 +1,24 @@
 
 .advancedperfs-time-benches {
     font-size:80%;
-    padding:20px;
+    padding:10px;
     color: #000;
     background-color: #eee;
     font-size: 1.2em;
+}
+
+.advancedperfs-time-benches * {
+    font-size: 14px;
+}
+
+.advancedperfs-time-benches .nav-tabs {
+    margin: 0;
+    padding: 0;
+}
+
+.advancedperfs-time-benches th,
+.advancedperfs-time-benches td {
+    padding: 0;
 }
 
 .perfs-visible {

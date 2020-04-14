@@ -142,7 +142,9 @@ class performance_monitor {
         if ($category == 'dbcalls') {
             $dbusecontext = $this->seek_trace();
             $context = str_replace($CFG->dirroot, '', @$dbusecontext['file'].'$'.@$dbusecontext['line']);
-            @$this->dbcallers[$context]++;
+            if (array_key_exists($context, $this->dbcallers)) {
+                $this->dbcallers[$context]++;
+            }
         }
     }
 
@@ -596,10 +598,14 @@ function punchin($in = '', $file = '', $line = '') {
 function punchout($out = '', $in = '', $file = '', $line = '') {
     $pm = performance_monitor::instance();
 
-    if (empty($out)) {
-        $pm->punchin($in, $file, $line);
-    } else {
-        $pm->punchout($out, $in, $file, $line);
+    try {
+        if (empty($out)) {
+            $pm->punchin($in, $file, $line);
+        } else {
+            $pm->punchout($out, $in, $file, $line);
+        }
+    } catch (Exception $e) {
+        // Pass through.
     }
 }
 
