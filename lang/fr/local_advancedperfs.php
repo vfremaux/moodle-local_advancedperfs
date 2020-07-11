@@ -17,6 +17,9 @@
 $string['advancedperfs:view'] = 'Voir les perfs avancées';
 $string['advancedperfs:hasdebugrole'] = 'A un rôle de debug';
 
+// Privacy
+$string['privacy:metadata'] = 'Le plugin de mesure de performance technique ne stocke pas de données personnelles.';
+
 $string['actives'] = 'Actifs';
 $string['clear'] = 'Purger la trace';
 $string['cleartrace'] = 'Vider la trace';

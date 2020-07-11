@@ -43,26 +43,27 @@ class trackdebug_task extends \core\task\scheduled_task {
      * Do the job.
      */
     public function execute() {
-        global $DB;
+        global $DB, $SITE, $CFG;
 
         $config = get_config('local_advancedperfs');
 
         $lastdebugchange = $DB->get_record_select('config_log', " plugin IS NULL and name = 'debug' ", array(), 'id, MAX(timemodified), name, value, oldvalue');
 
-        if (($lastdebugchange->value >= $config->debugreleasethreshold) && ($lastdebugchange->timemodified < (time() - HOURSECS * $config->canceldebugafter))) {
+        if (($CFG->debug >= $config->debugreleasethreshold) && ($lastdebugchange->timemodified < (time() - HOURSECS * $config->canceldebugafter))) {
             $oldddebug = get_config('core', 'debug');
             $oldddebugdisplay = get_config('core', 'debugdisplay');
             set_config('debug', $config->debugreleasevalue);
             set_config('debugdisplay', $config->debugdisplayreleasevalue);
             set_config('themedesignermode', 0);
-            add_to_config_log('debug', $olddebug, $config->debugreleasevalue);
-            add_to_config_log('debugdisplay', $olddebugdisplay, $config->debugdisplayreleasevalue);
+            add_to_config_log('debug', $olddebug, $config->debugreleasevalue, 'core');
+            add_to_config_log('debugdisplay', $olddebugdisplay, $config->debugdisplayreleasevalue, 'core');
 
             if (!empty($config->debugnotifyrelease)) {
                 $a = get_admin();
 
-                $notification = 'Debug mode is at '.$olddebug.' for at least '.$config->canceldebugafter." hours\n\n";
-                $notification = 'Passing from '.$oldddebug.' to '.$config->debugreleasevalue;
+                $notification = "Moodle AdvancedPerfs TrackDebug monitor\n\n";
+                $notification .= 'Debug mode is at '.$olddebug.' for at least '.$config->canceldebugafter." hours\n\n";
+                $notification .= 'Passing from '.$oldddebug.' to '.$config->debugreleasevalue;
                 email_to_user($a, $a, '['.$SITE->shortname.'] Releasing debug mode ', $notification);
             }
         }

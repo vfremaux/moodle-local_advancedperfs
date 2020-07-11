@@ -63,7 +63,7 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         $this->slowpageexcludes[] = 'local\\/advancedperfs';
 
         if (!isset($this->slowpages)) {
-            $this->slowpages = $DB->get_records('local_advancedperfs_slowp', array(), 'timecreated');
+            $this->slowpages = $DB->get_records('local_advancedperfs_slowp', array(), 'id DESC', '*', 0, 200);
 
             if (!empty($this->slowpages)) {
                 $pagearray = array_values($this->slowpages);

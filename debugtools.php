@@ -42,6 +42,10 @@ function debug_print_for_user($user, $text) {
         return;
     }
 
+    if (is_object($text) || is_array($text)) {
+        $text = '<pre>'.var_export($text, true).'</pre>';
+    }
+
     $printit = false;
 
     if (is_int($user)) {
@@ -163,6 +167,12 @@ function debug_open_trace() {
 
     if (!empty($CFG->trace) && empty($CFG->tracehandle)) {
         $CFG->tracehandle = @fopen($CFG->trace, 'a');
+
+        if (isset($CFG->trace_initial_tracing)) {
+            $CFG->trace_tracing = $CFG->trace_initial_tracing;
+        } else {
+            $CFG->trace_tracing = true;
+        }
     }
     if (!empty($CFG->trace) && !$CFG->tracehandle) {
         if (debugging()) {
@@ -198,11 +208,53 @@ function debug_trace_open($str, $label = '') {
 /**
  * write to the trace
  */
-function debug_trace($str, $label = '') {
+function debug_trace_off() {
     global $CFG;
+
+    $CFG->trace_tracing = false;
+}
+
+/**
+ * write to the trace
+ */
+function debug_trace_on() {
+    global $CFG;
+
+    $CFG->trace_tracing = true;
+    debug_trace("Starting trace", '', 2);
+}
+
+/**
+ * write to the trace
+ */
+function debug_trace($str, $label = '', $backtracelevel = 1) {
+    global $CFG;
+
+    if (!isset($CFG->trace_tracing)) {
+        if (isset($CFG->trace_initial_tracing)) {
+            $CFG->trace_tracing = $CFG->trace_initial_tracing;
+        } else {
+            $CFG->trace_tracing = true;
+        }
+    }
+
+    if (empty($CFG->trace_tracing)) {
+        return;
+    }
 
     if (is_object($str) || is_array($str)) {
         $str = print_r($str, true);
+    }
+
+    $bt = debug_backtrace();
+    for ($i = 0; $i < $backtracelevel; $i++) {
+        $caller = array_shift($bt);
+    }
+    $location = $caller['file'].' § '.$caller['line'];
+
+    $str = $location."\n".$str;
+    if (!empty($CFG->traceindent)) {
+        $str = $CFG->traceindent.str_replace("\n", "\n".$CFG->traceindent, $str);
     }
 
     if (!empty($CFG->tracehandle)) {
@@ -367,4 +419,39 @@ function debug_catch_users() {
     if (empty($debugcause) && !empty($CFG->debugdisplay)) {
         $debugcause = 'Standard Debug Mode';
     }
+}
+
+/**
+ * Shows finalized blocks structure for the current page.
+ * Ensures we are postprocessing clones and not original records.
+ */
+function debug_blocks() {
+    global $PAGE, $OUTPUT;
+
+    if (optional_param('blockdebug', false, PARAM_BOOL)) {
+
+        $regions = $PAGE->blocks->get_content_for_all_regions($OUTPUT);
+        $output = [];
+        foreach ($regions as $regionname => $region) {
+            foreach ($region as $block) {
+                $outputblock = clone($block);
+                unset($outputblock->content);
+                unset($outputblock->footer);
+                $output[$regionname][] = $outputblock;
+            }
+        }
+        print_object($output);
+    }
+}
+
+function debug_trace_block_query($sql, $allparams) {
+    foreach ($allparams as $key => $value) {
+        if (is_numeric($value)) {
+            $sql = preg_replace("/:$key\\b/", $value, $sql);
+        } else {
+            $sql = preg_replace("/:$key\\b/", "'$value'", $sql);
+        }
+    }
+    $sql = preg_replace('/\\{(.*?)\\}/', 'mdl_\\1', $sql);
+    debug_trace($sql);
 }

@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// Capabilities.
 $string['advancedperfs:view'] = 'View perfs';
 $string['advancedperfs:hasdebugrole'] = 'Has a debug role';
+
+// Privacy
+$string['privacy:metadata'] = 'The Local Advancedperfs plugin does not store any personal data about any user.';
 
 $string['actives'] = 'Actives';
 $string['blockinits'] = 'Block Initialisations';
