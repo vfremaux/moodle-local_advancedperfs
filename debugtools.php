@@ -42,10 +42,6 @@ function debug_print_for_user($user, $text) {
         return;
     }
 
-    if (is_object($text) || is_array($text)) {
-        $text = '<pre>'.var_export($text, true).'</pre>';
-    }
-
     $printit = false;
 
     if (is_int($user)) {
@@ -419,39 +415,4 @@ function debug_catch_users() {
     if (empty($debugcause) && !empty($CFG->debugdisplay)) {
         $debugcause = 'Standard Debug Mode';
     }
-}
-
-/**
- * Shows finalized blocks structure for the current page.
- * Ensures we are postprocessing clones and not original records.
- */
-function debug_blocks() {
-    global $PAGE, $OUTPUT;
-
-    if (optional_param('blockdebug', false, PARAM_BOOL)) {
-
-        $regions = $PAGE->blocks->get_content_for_all_regions($OUTPUT);
-        $output = [];
-        foreach ($regions as $regionname => $region) {
-            foreach ($region as $block) {
-                $outputblock = clone($block);
-                unset($outputblock->content);
-                unset($outputblock->footer);
-                $output[$regionname][] = $outputblock;
-            }
-        }
-        print_object($output);
-    }
-}
-
-function debug_trace_block_query($sql, $allparams) {
-    foreach ($allparams as $key => $value) {
-        if (is_numeric($value)) {
-            $sql = preg_replace("/:$key\\b/", $value, $sql);
-        } else {
-            $sql = preg_replace("/:$key\\b/", "'$value'", $sql);
-        }
-    }
-    $sql = preg_replace('/\\{(.*?)\\}/', 'mdl_\\1', $sql);
-    debug_trace($sql);
 }
