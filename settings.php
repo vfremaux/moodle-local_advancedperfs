@@ -16,19 +16,8 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-// Settings default init.
-if (is_dir($CFG->dirroot.'/local/adminsettings')) {
-    // Integration driven code.
-    require_once($CFG->dirroot.'/local/adminsettings/lib.php');
-    list($hasconfig, $hassiteconfig, $capability) = local_adminsettings_access();
-} else {
-    // Standard Moodle code.
-    $capability = 'moodle/site:config';
-    $hasconfig = $hassiteconfig = has_capability($capability, context_system::instance());
-}
-
 if ($hassiteconfig) {
-    $settings = new admin_settingpage('local_timebenches', get_string('pluginname', 'local_advancedperfs'));
+    $settings = new admin_settingpage('localsettingtimebenches', get_string('pluginname', 'local_advancedperfs'));
 
     $settings->add(new admin_setting_heading('perfshdr', get_string('perfs', 'local_advancedperfs'), ''));
 
@@ -120,11 +109,50 @@ if ($hassiteconfig) {
     $default = 0;
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, $default));
 
-    $ADMIN->add('development', $settings);
-
     $label = get_string('trace', 'local_advancedperfs');
     $traceurl = new moodle_url('/local/advancedperfs/trace.php');
     $ADMIN->add('development', new admin_externalpage('trace', $label, $traceurl, 'moodle/site:config'));
+
+    $traceurl = new moodle_url('/local/advancedperfs/trace.php');
+    $html = '<a href="'.$traceurl.'">'.get_string('seetrace', 'local_advancedperfs').'</a>';
+    $settings->add(new admin_setting_heading('tracehdr', get_string('trace', 'local_advancedperfs'), $html));
+
+    $key = 'trace';
+    $label = get_string('configtrace', 'local_advancedperfs');
+    $desc = get_string('configtrace_desc', 'local_advancedperfs');
+    $default = '';
+    $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
+
+    $options = [
+        '0' => get_string('no'),
+        TRACE_ERRORS => get_string('errors', 'local_advancedperfs'),
+        TRACE_NOTICE => get_string('notices', 'local_advancedperfs'),
+        TRACE_DEBUG => get_string('debug', 'local_advancedperfs'),
+        TRACE_DATA => get_string('data', 'local_advancedperfs'),
+        TRACE_DEBUG_FINE => get_string('finedebug', 'local_advancedperfs'),
+    ];
+    $key = 'local_advancedperfs/traceout';
+    $label = get_string('configtraceout', 'local_advancedperfs');
+    $desc = get_string('configtraceout_desc', 'local_advancedperfs');
+    $default = 0;
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $options));
+
+    $key = 'local_advancedperfs/maxtracefilesize';
+    $label = get_string('configmaxtracefilesize', 'local_advancedperfs');
+    $desc = get_string('configmaxtracefilesize_desc', 'local_advancedperfs');
+    $options = [
+        '0' => get_string('nolimit', 'local_advancedperfs'),
+        '50' => '50k',
+        '100' => '100k',
+        '500' => '500k',
+        '1000' => '1m',
+        '5000' => '5m',
+        '10000' => '10m',
+        '50000' => '50m',
+        '100000' => '100m'
+    ];
+    $default = 1000;
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $options));
 
     $settings->add(new admin_setting_heading('datafixhdr', get_string('datafixes', 'local_advancedperfs'), get_string('datafixes_desc', 'local_advancedperfs')));
 
@@ -137,5 +165,7 @@ if ($hassiteconfig) {
     $label = get_string('configfixsql', 'local_advancedperfs');
     $desc = get_string('configfixsql_desc', 'local_advancedperfs');
     $settings->add(new admin_setting_configtextarea($key, $label, $desc, ''));
+
+    $ADMIN->add('development', $settings);
 }
 

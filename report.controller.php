@@ -18,7 +18,7 @@
  *
  * @package     local_performance
  * @subpackage  local
- * @author      Valery Fremaux <valery.fremaux@club-internet.fr>
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
  * @copyright   (C) 2016 onwards Valery Fremaux
  */
