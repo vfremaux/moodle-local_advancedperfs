@@ -18,7 +18,7 @@
  *
  * @package     local_performance
  * @subpackage  local
- * @author      Valery Fremaux <valery.fremaux@club-internet.fr>
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
  * @copyright   (C) 2016 onwards Valery Fremaux
  */
@@ -67,12 +67,13 @@ class trace_controller {
 
         if ($cmd == 'clear') {
             if (!empty($CFG->trace)) {
-                if ($TRACE = fopen($CFG->trace, 'w')) {
+                $trace = str_replace('%DATAROOT%', $CFG->dataroot, $CFG->trace);
+                if ($TRACE = fopen($trace, 'w')) {
                     fclose($TRACE);
                 } else {
                     // Try twice if file is locked by another process.
-                    sleep(1000);
-                    if ($TRACE = fopen($CFG->trace, 'w')) {
+                    sleep(1);
+                    if ($TRACE = fopen($trace, 'w')) {
                         fclose($TRACE);
                     }
                 }

@@ -18,7 +18,7 @@
  *
  * @package     local_advancedperfs
  * @subpackage  local
- * @author      Valery Fremaux <valery.fremaux@club-internet.fr>
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @version     Moodle 2.x
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
  * @copyright   (C) 1999 onwards Martin Dougiamas  http://dougiamas.com

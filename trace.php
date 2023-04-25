@@ -39,7 +39,6 @@ $PAGE->navbar->add(get_string('trace', 'local_advancedperfs'));
 $renderer = $PAGE->get_renderer('local_advancedperfs');
 
 if ($action) {
-
     include_once($CFG->dirroot.'/local/advancedperfs/trace.controller.php');
     $controller = new \local_advancedperfs\trace_controller();
     $controller->receive($action);
@@ -48,19 +47,48 @@ if ($action) {
 
 echo $OUTPUT->header();
 
+echo $OUTPUT->heading(get_string('trace', 'local_advancedperfs'));
+
+$config = get_config('local_advancedperfs');
+
+$strcodes = [
+        0 => 'no',
+        TRACE_ERRORS => 'errors',
+        TRACE_NOTICE => 'notices',
+        TRACE_DEBUG => 'debug',
+        TRACE_DATA => 'data',
+        TRACE_DEBUG_FINE => 'finedebug'
+];
+
+echo $OUTPUT->notification(get_string('configtraceout', 'local_advancedperfs').' '.get_string($strcodes[$config->traceout], 'local_advancedperfs'), 'info');
+
+$settingsurl = new moodle_url('/admin/settings.php', ['section' => 'localsettingtimebenches']);
+echo '<div style="text-align: right"><a href="'.$settingsurl.'">'.get_string('settings', 'local_advancedperfs').'</a></div>';
+
 // Report global indicators.
-$tracesize = filesize($CFG->trace);
-if ($tracesize > 1024000) { // Originally 1M max.
-    echo $OUTPUT->notification(get_string('tracetoobig', 'local_advancedperfs'));
-    $buttonurl = new moodle_url('/local/advancedperfs/trace.php', array('what' => 'clear', 'sesskey' => sesskey()));
-    echo $OUTPUT->single_button($buttonurl, get_string('clear', 'local_advancedperfs'));
+$tracelocation = str_replace('%DATAROOT%', $CFG->dataroot, $CFG->trace); // Optional placeolder.
+
+if (!is_file($tracelocation)) {
+    echo $OUTPUT->notification(get_string('notracefile', 'local_advancedperfs'), 'error');
 } else {
-    $trace = implode("\n", file($CFG->trace));
-    echo '<pre>';
-    echo $trace;
-    echo '</pre>';
-    $buttonurl = new moodle_url('/local/advancedperfs/trace.php', array('what' => 'clear', 'sesskey' => sesskey()));
-    echo $OUTPUT->single_button($buttonurl, get_string('clear', 'local_advancedperfs'));
+    $tracesize = filesize($tracelocation);
+    if ($tracesize > 10 * 1024 * 1024) { // Originally 2M max.
+        echo $OUTPUT->notification(get_string('tracetoobig', 'local_advancedperfs'));
+        $buttonurl = new moodle_url('/local/advancedperfs/trace.php', array('what' => 'clear', 'sesskey' => sesskey()));
+        echo $OUTPUT->single_button($buttonurl, get_string('clear', 'local_advancedperfs'));
+    } else {
+        $trace = implode("\n", file($tracelocation));
+
+        if (mb_strlen($trace) > 500) {
+            echo $renderer->tracebuttons();
+        }
+
+        echo '<pre>';
+        echo $trace;
+        echo '</pre>';
+
+        echo $renderer->tracebuttons();
+    }
 }
 
 echo $OUTPUT->footer();
