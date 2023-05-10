@@ -18,7 +18,7 @@
  *
  * @package     local_advancedperfs
  * @subpackage  local
- * @author      Valery Fremaux <valery.fremaux@club-internet.fr>
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @version     Moodle 2.x
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
  * @copyright   (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
@@ -33,23 +33,33 @@ if (!defined('MOODLE_EARLY_INTERNAL')) {
     defined('MOODLE_INTERNAL') || die('');
 }
 
+define('TRACE_ERRORS', 1); // Errors should be always traced when trace is on.
+define('TRACE_NOTICE', 3); // Notices are important notices in normal execution.
+define('TRACE_DEBUG', 5); // Debug are debug time notices that should be burried in debug_fine level when debug is ok.
+define('TRACE_DATA', 8); // Data level is when requiring to see data structures content.
+define('TRACE_DEBUG_FINE', 10); // Debug fine are control points we want to keep when code is refactored and debug needs to be reactivated.
+
 require_once($CFG->dirroot.'/local/advancedperfs/extra/extralib.php');
 
-function debug_print_for_user($user, $text) {
+function debug_print_for_user($userorid, $text) {
     global $USER;
 
     if (!isloggedin()) {
         return;
     }
 
+    if (is_object($text) || is_array($text)) {
+        $text = '<pre>'.var_export($text, true).'</pre>';
+    }
+
     $printit = false;
 
-    if (is_int($user)) {
-        if ($USER->id == $user) {
+    if (is_int($userorid)) {
+        if ($USER->id == $userorid) {
             $printit = true;
         }
     } else {
-        if ($USER->username == $user) {
+        if ($USER->username == $userorid) {
             $printit = true;
         }
     }
@@ -161,8 +171,32 @@ function debug_track_capabilities($userid, $capnames) {
 function debug_open_trace() {
     global $CFG, $OUTPUT;
 
-    if (!empty($CFG->trace) && empty($CFG->tracehandle)) {
-        $CFG->tracehandle = @fopen($CFG->trace, 'a');
+    $config = get_config('local_advancedperfs');
+
+    if (!$config->traceout) {
+        return;
+    }
+
+    if (empty($CFG->trace)) {
+        return;
+    }
+
+    $tracelocation = $CFG->trace;
+    $tracelocation = str_replace('%DATAROOT%', $CFG->dataroot, $tracelocation); // Optional placeolder.
+
+    if (!empty($tracelocation) && empty($CFG->tracehandle)) {
+        if (!empty($config->maxtracefilesize) && is_file($tracelocation)) {
+            // If file already exists and we have some size limit on it.
+            $info = stat($tracelocation);
+            if ($info['size'] > $config->maxtracefilesize * 1024) {
+                // Truncate existing trace to keep it under the maxsize.
+                $CFG->tracehandle = @fopen($tracelocation, 'w');
+            }
+        }
+
+        if (empty($CFG->tracehandle)) {
+            $CFG->tracehandle = @fopen($tracelocation, 'a');
+        }
 
         if (isset($CFG->trace_initial_tracing)) {
             $CFG->trace_tracing = $CFG->trace_initial_tracing;
@@ -170,11 +204,13 @@ function debug_open_trace() {
             $CFG->trace_tracing = true;
         }
     }
-    if (!empty($CFG->trace) && !$CFG->tracehandle) {
-        if (debugging()) {
-            echo $OUTPUT->notification('Trace could not be open at '.$CFG->trace);
+
+    if (is_null($CFG->tracehandle)) {
+        if ($CFG->debug == DEBUG_DEVELOPER) {
+            echo $OUTPUT->notification('Trace could not be open at '.$tracelocation);
         }
     }
+
     return !is_null(@$CFG->tracehandle);
 }
 
@@ -202,7 +238,7 @@ function debug_trace_open($str, $label = '') {
 }
 
 /**
- * write to the trace
+ * Use this call in code to stop execution range tracing.
  */
 function debug_trace_off() {
     global $CFG;
@@ -211,7 +247,7 @@ function debug_trace_off() {
 }
 
 /**
- * write to the trace
+ * Use this call in code to start tracing from a code execution statement.
  */
 function debug_trace_on() {
     global $CFG;
@@ -223,8 +259,41 @@ function debug_trace_on() {
 /**
  * write to the trace
  */
-function debug_trace($str, $label = '', $backtracelevel = 1) {
+function debug_trace($str, $tracelevel = TRACE_NOTICE, $label = '', $backtracelevel = 1) {
     global $CFG;
+
+    $config = get_config('local_advancedperfs');
+    if (empty($config->traceout)) {
+        return;
+    }
+
+    // check if labels are required, and filter trace.
+    $tracelabels = optional_param('debuglabel', false, PARAM_TEXT);
+    if (!empty($tracelabels)) {
+        if ($tracelabels = '*') {
+            // * means : pass all EXCEPT labelized trace calls
+            if (!empty($label)) {
+                return;
+            }
+        } else {
+            $requiredlabels = explode(',', $tracelabels);
+            $found = false;
+            foreach ($requiredlabels as $tl) {
+                if ($label == $tl) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                return;
+            }
+        }
+    }
+
+    if ($tracelevel && ($tracelevel > $config->traceout)) {
+        return;
+    }
 
     if (!isset($CFG->trace_tracing)) {
         if (isset($CFG->trace_initial_tracing)) {
@@ -263,6 +332,35 @@ function debug_trace($str, $label = '', $backtracelevel = 1) {
     }
 }
 
+function debug_trace_sql($sql, $params, $tracelevel) {
+    global $DB;
+
+    list($sql, $params, $type) = $DB->fix_sql_params($sql, $params);
+
+    if (empty($params)) {
+        debug_trace($sql);
+    }
+    // ok, we have verified sql statement with ? and correct number of params
+    $parts = array_reverse(explode('?', $sql));
+    $return = array_pop($parts);
+    foreach ($params as $param) {
+        if (is_bool($param)) {
+            $return .= (int)$param;
+        } else if (is_null($param)) {
+            $return .= 'NULL';
+        } else if (is_number($param)) {
+            $return .= "'".$param."'"; // we have to always use strings because mysql is using weird automatic int casting
+        } else if (is_float($param)) {
+            $return .= $param;
+        } else {
+            // $param = mysqli_real_escape_string($cnx, $param);
+            $return .= "'$param'";
+        }
+        $return .= array_pop($parts);
+    }
+    debug_trace($return, $tracelevel);
+}
+
 /**
  * write to the trace
  */
@@ -287,8 +385,30 @@ define('BACKTRACE_FUNCRETURN', 4);
 
 function debug_print_clean_backtrace($options = BACKTRACE_FUNCNAME) {
     echo '<pre>';
-    $backtrace = debug_print_backtrace();
+    debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
     echo '</pre>';
+}
+
+function debug_trace_clean_backtrace($msg = '') {
+    ob_start();
+    debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+    $backtrace = ob_get_clean();
+    debug_trace($msg."\n".$backtrace);
+    return $msg."\n".$backtrace;
+}
+
+function debug_send_report_admin($title, $msg = '', $file = 'unknown', $line = 'unknown') {
+    global $DB, $SITE;
+
+    $admin = $DB->get_record('user', ['username' => 'admin']);
+    $sitename = (is_object($SITE)) ? $SITE->shortname : 'unknown';
+    $subject = "Debug output on {$sitename} : {$title} ";
+    $message = "
+        file: $file
+        line: $line
+        message: $msg
+    ";
+    email_to_user($admin, $admin, $subject, $message, $message);
 }
 
 function debug_print_object_nr($object, $depth = 1) {
@@ -390,15 +510,22 @@ function debug_catch_users() {
         $debugusers = explode(',', $CFG->debugusers);
         if (in_array($USER->id, $debugusers)) {
             $CFG->debug = DEBUG_DEVELOPER;
+            $CFG->debugdisplay = true;
             $debugcause = 'Debug User Match';
             return;
         }
     }
 
-    if (!empty($CFG->debugfromips)) {
+    if (!empty($CFG->debugfromips) && !defined('CLI_SCRIPT')) {
         $debugips = explode(',', $CFG->debugfromips);
-        if (in_array($_SERVER['INET_ADDRESS'], $debugips)) {
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $realip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            $realip = $_SERVER['REMOTE_ADDR'];
+        }
+        if (in_array($realip, $debugips)) {
             $CFG->debug = DEBUG_DEVELOPER;
+            $CFG->debugdisplay = true;
             $debugcause = 'Debug IP Match';
             return;
         }
@@ -409,10 +536,47 @@ function debug_catch_users() {
         if (has_capability('local/advancedperfs:hasdebugrole', context_system::instance(), $USER->id, false)) {
             $debugcause = 'Debug Capability Match';
             $CFG->debug = DEBUG_DEVELOPER;
+            $CFG->debugdisplay = true;
+            return;
         }
     }
 
     if (empty($debugcause) && !empty($CFG->debugdisplay)) {
         $debugcause = 'Standard Debug Mode';
     }
+}
+
+/**
+ * Shows finalized blocks structure for the current page.
+ * Ensures we are postprocessing clones and not original records.
+ */
+function debug_blocks() {
+    global $PAGE, $OUTPUT;
+
+    if (optional_param('blockdebug', false, PARAM_BOOL)) {
+
+        $regions = $PAGE->blocks->get_content_for_all_regions($OUTPUT);
+        $output = [];
+        foreach ($regions as $regionname => $region) {
+            foreach ($region as $block) {
+                $outputblock = clone($block);
+                unset($outputblock->content);
+                unset($outputblock->footer);
+                $output[$regionname][] = $outputblock;
+            }
+        }
+        print_object($output);
+    }
+}
+
+function debug_trace_block_query($sql, $allparams) {
+    foreach ($allparams as $key => $value) {
+        if (is_numeric($value)) {
+            $sql = preg_replace("/:$key\\b/", $value, $sql);
+        } else {
+            $sql = preg_replace("/:$key\\b/", "'$value'", $sql);
+        }
+    }
+    $sql = preg_replace('/\\{(.*?)\\}/', 'mdl_\\1', $sql);
+    debug_trace($sql);
 }

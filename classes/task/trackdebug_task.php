@@ -54,7 +54,9 @@ class trackdebug_task extends \core\task\scheduled_task {
             $oldddebugdisplay = get_config('core', 'debugdisplay');
             set_config('debug', $config->debugreleasevalue);
             set_config('debugdisplay', $config->debugdisplayreleasevalue);
-            set_config('themedesignermode', 0);
+            set_config('themedesignermode', 0); // Reset theme designer mode as also impact perfs.
+            set_config('cachejs', 1); // Reset theme designer mode as also impact perfs.
+            set_config('traceout', 0, 'local_advancedperfs'); // Reset trace out mode to NO TRACE.
             add_to_config_log('debug', $olddebug, $config->debugreleasevalue, 'core');
             add_to_config_log('debugdisplay', $olddebugdisplay, $config->debugdisplayreleasevalue, 'core');
 
