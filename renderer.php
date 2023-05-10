@@ -18,7 +18,7 @@
  *
  * @package     local_performance
  * @subpackage  local
- * @author      Valery Fremaux <valery.fremaux@club-internet.fr>
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
  * @copyright   (C) 2016 onwards Valery Fremaux
  */
@@ -856,5 +856,14 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         } else {
             return sprintf('%.2f', $memsize / (1024 * 1024)).'M';
         }
+    }
+
+    public function tracebuttons() {
+        $str = '';
+        $buttonurl = new moodle_url('/local/advancedperfs/trace.php', array('what' => 'clear', 'sesskey' => sesskey()));
+        $str .= $this->output->single_button($buttonurl, get_string('clear', 'local_advancedperfs'));
+        $buttonurl = new moodle_url('/local/advancedperfs/trace.php', array('sesskey' => sesskey()));
+        $str .= $this->output->single_button($buttonurl, get_string('reload', 'local_advancedperfs'));
+        return $str;
     }
 }

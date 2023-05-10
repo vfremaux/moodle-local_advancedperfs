@@ -26,12 +26,13 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version  = 2019012001;   // The (date) version of this plugin.
-$plugin->requires = 2019111200;   // Requires this Moodle version.
+$plugin->version  = 2022072900;   // The (date) version of this plugin.
+$plugin->requires = 2022112801;   // Requires this Moodle version.
 $plugin->component  = 'local_advancedperfs';   // The plugin name.
-$plugin->release = '3.8.0 (Build 2019012001)';
+$plugin->release = '4.1.0 (Build 2019012001)';
 $plugin->maturity = MATURITY_RC;
 $plugin->dependencies = array('local_vflibs' => 2016081100);
+$plugin->supported = [40, 41];
 
 // Non moodle attributes.
-$plugin->codeincrement = '3.8.0005';
+$plugin->codeincrement = '4.1.0006';

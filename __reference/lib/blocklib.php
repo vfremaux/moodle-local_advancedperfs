@@ -519,6 +519,11 @@ class block_manager {
             }
         }
         $this->regions[$region] = 1;
+
+        // Checking the actual property instead of calling get_default_region as it ends up in a recursive call.
+        if (empty($this->defaultregion)) {
+            $this->set_default_region($region);
+        }
     }
 
     /**
@@ -591,36 +596,11 @@ class block_manager {
      * @see region_uses_dock
      * @param string $region
      * @return bool True if all of the blocks within that region are docked
+     *
+     * Return false as from MDL-64506
      */
     public function region_completely_docked($region, $output) {
-        global $CFG;
-        // If theme doesn't allow docking or allowblockstodock is not set, then return.
-        if (!$this->page->theme->enable_dock || empty($CFG->allowblockstodock)) {
-            return false;
-        }
-
-        // Do not dock the region when the user attemps to move a block.
-        if ($this->movingblock) {
-            return false;
-        }
-
-        // Block regions should not be docked during editing when all the blocks are hidden.
-        if ($this->page->user_is_editing() && $this->page->user_can_edit_blocks()) {
-            return false;
-        }
-
-        $this->check_is_loaded();
-        $this->ensure_content_created($region, $output);
-        if (!$this->region_has_content($region, $output)) {
-            // If the region has no content then nothing is docked at all of course.
-            return false;
-        }
-        foreach ($this->visibleblockcontent[$region] as $instance) {
-            if (!get_user_preferences('docked_block_instance_'.$instance->blockinstanceid, 0)) {
-                return false;
-            }
-        }
-        return true;
+        return false;
     }
 
     /**
@@ -629,20 +609,10 @@ class block_manager {
      * @see region_completely_docked
      * @param array|string $regions array of regions (or single region)
      * @return bool True if any of the blocks within that region are docked
+     *
+     * Return false as from MDL-64506
      */
     public function region_uses_dock($regions, $output) {
-        if (!$this->page->theme->enable_dock) {
-            return false;
-        }
-        $this->check_is_loaded();
-        foreach((array)$regions as $region) {
-            $this->ensure_content_created($region, $output);
-            foreach($this->visibleblockcontent[$region] as $instance) {
-                if(!empty($instance->content) && get_user_preferences('docked_block_instance_'.$instance->blockinstanceid, 0)) {
-                    return true;
-                }
-            }
-        }
         return false;
     }
 
@@ -1255,6 +1225,12 @@ class block_manager {
      */
     public function ensure_content_created($region, $output) {
         $this->ensure_instances_exist($region);
+
+        if (!has_capability('moodle/block:view', $this->page->context) ) {
+            $this->visibleblockcontent[$region] = [];
+            return;
+        }
+
         if (!array_key_exists($region, $this->visibleblockcontent)) {
             $contents = array();
             if (array_key_exists($region, $this->extracontent)) {
@@ -1306,8 +1282,10 @@ class block_manager {
         if ($this->page->user_can_edit_blocks() || $block->user_can_edit()) {
             // Edit config icon - always show - needed for positioning UI.
             $str = new lang_string('configureblock', 'block', $blocktitle);
+            $editactionurl = new moodle_url($actionurl, ['bui_editid' => $block->instance->id]);
+            $editactionurl->remove_params(['sesskey']);
             $controls[] = new action_menu_link_secondary(
-                new moodle_url($actionurl, array('bui_editid' => $block->instance->id)),
+                $editactionurl,
                 new pix_icon('t/edit', $str, 'moodle', array('class' => 'iconsmall', 'title' => '')),
                 $str,
                 array('class' => 'editing_edit')
@@ -1370,8 +1348,10 @@ class block_manager {
         if ($this->user_can_delete_block($block)) {
             // Delete icon.
             $str = new lang_string('deleteblock', 'block', $blocktitle);
+            $deleteactionurl = new moodle_url($actionurl, ['bui_deleteid' => $block->instance->id]);
+            $deleteactionurl->remove_params(['sesskey']);
             $controls[] = new action_menu_link_secondary(
-                new moodle_url($actionurl, array('bui_deleteid' => $block->instance->id)),
+                $deleteactionurl,
                 new pix_icon('t/delete', $str, 'moodle', array('class' => 'iconsmall', 'title' => '')),
                 $str,
                 array('class' => 'editing_delete')
@@ -1481,13 +1461,13 @@ class block_manager {
 
             if (!$addableblocks) {
                 echo $OUTPUT->box(get_string('noblockstoaddhere'));
-                echo $OUTPUT->container($OUTPUT->action_link($addpage->url, get_string('back')), 'm-x-3 m-b-1');
+                echo $OUTPUT->container($OUTPUT->action_link($addpage->url, get_string('back')), 'mx-3 mb-1');
             } else {
                 $url = new moodle_url($addpage->url, array('sesskey' => sesskey()));
                 echo $OUTPUT->render_from_template('core/add_block_body',
                     ['blocks' => array_values($addableblocks),
                      'url' => '?' . $url->get_query_string(false)]);
-                echo $OUTPUT->container($OUTPUT->action_link($addpage->url, get_string('cancel')), 'm-x-3 m-b-1');
+                echo $OUTPUT->container($OUTPUT->action_link($addpage->url, get_string('cancel')), 'mx-3 mb-1');
             }
 
             echo $OUTPUT->footer();
@@ -1521,7 +1501,6 @@ class block_manager {
             return false;
         }
 
-        require_sesskey();
         $block = $this->page->blocks->find_instance($blockid);
         if (!$this->user_can_delete_block($block)) {
             throw new moodle_exception('nopermissions', '', $this->page->url->out(), get_string('deleteablock'));
@@ -1587,6 +1566,8 @@ class block_manager {
             // Make sure that nothing else happens after we have displayed this form.
             exit;
         } else {
+            require_sesskey();
+
             blocks_delete_instance($block->instance);
             // bui_deleteid and bui_confirm should not be in the PAGE url.
             $this->page->ensure_param_not_in_url('bui_deleteid');
@@ -1640,7 +1621,6 @@ class block_manager {
             return false;
         }
 
-        require_sesskey();
         require_once($CFG->dirroot . '/blocks/edit_form.php');
 
         $block = $this->find_instance($blockid);
