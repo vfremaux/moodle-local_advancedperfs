@@ -52,9 +52,13 @@ define('SQL_QUERY_STRUCTURE', 4);
 /** SQL_QUERY_AUX - Auxiliary query done by driver, setting connection config, getting table info, etc. */
 define('SQL_QUERY_AUX', 5);
 
+/** SQL_QUERY_AUX_READONLY - Auxiliary query that can be done using the readonly connection:
+ * database parameters, table/index/column lists, if not within transaction/ddl. */
+define('SQL_QUERY_AUX_READONLY', 6);
+
 /**
  * Abstract class representing moodle database interface.
- * @link http://docs.moodle.org/dev/DML_functions
+ * @link https://moodledev.io/docs/apis/core/dml/ddl
  *
  * @package    core_dml
  * @copyright  2008 Petr Skoda (http://skodak.org)
@@ -137,7 +141,7 @@ abstract class moodle_database {
     /**
      * @var int internal temporary variable used to guarantee unique parameters in each request. Its used by {@link get_in_or_equal()}.
      */
-    private $inorequaluniqueindex = 1;
+    protected $inorequaluniqueindex = 1;
 
     /**
      * @var boolean variable use to temporarily disable logging.
@@ -414,13 +418,15 @@ abstract class moodle_database {
 
     /**
      * This should be called before each db query.
+     *
      * @param string $sql The query string.
-     * @param array $params An array of parameters.
-     * @param int $type The type of query. ( SQL_QUERY_SELECT | SQL_QUERY_AUX | SQL_QUERY_INSERT | SQL_QUERY_UPDATE | SQL_QUERY_STRUCTURE )
+     * @param array|null $params An array of parameters.
+     * @param int $type The type of query ( SQL_QUERY_SELECT | SQL_QUERY_AUX_READONLY | SQL_QUERY_AUX |
+     *                  SQL_QUERY_INSERT | SQL_QUERY_UPDATE | SQL_QUERY_STRUCTURE ).
      * @param mixed $extrainfo This is here for any driver specific extra information.
      * @return void
      */
-    protected function query_start($sql, array $params=null, $type, $extrainfo=null) {
+    protected function query_start($sql, ?array $params, $type, $extrainfo=null) {
         if ($this->loggingquery) {
             return;
         }
@@ -440,6 +446,7 @@ abstract class moodle_database {
         switch ($type) {
             case SQL_QUERY_SELECT:
             case SQL_QUERY_AUX:
+            case SQL_QUERY_AUX_READONLY:
                 $this->reads++;
                 break;
             case SQL_QUERY_INSERT:
@@ -497,6 +504,7 @@ abstract class moodle_database {
         switch ($type) {
             case SQL_QUERY_SELECT:
             case SQL_QUERY_AUX:
+            case SQL_QUERY_AUX_READONLY:
                 throw new dml_read_exception($error, $sql, $params);
             case SQL_QUERY_INSERT:
             case SQL_QUERY_UPDATE:
@@ -914,6 +922,9 @@ abstract class moodle_database {
         $dollar_count = preg_match_all('/\$[1-9][0-9]*/', $sql, $dollar_matches);
         $q_count     = substr_count($sql, '?');
 
+        // Optionally add debug trace to sql as a comment.
+        $sql = $this->add_sql_debugging($sql);
+
         $count = 0;
 
         if ($named_count) {
@@ -1043,6 +1054,50 @@ abstract class moodle_database {
             }
         }
     }
+
+    /**
+     * Add an SQL comment to trace all sql calls back to the calling php code
+     * @param string $sql Original sql
+     * @return string Instrumented sql
+     */
+    protected function add_sql_debugging(string $sql): string {
+        global $CFG;
+
+        if (!property_exists($CFG, 'debugsqltrace')) {
+            return $sql;
+        }
+
+        $level = $CFG->debugsqltrace;
+
+        if (empty($level)) {
+            return $sql;
+        }
+
+        $callers = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+
+        // Ignore moodle_database internals.
+        $callers = array_filter($callers, function($caller) {
+            return empty($caller['class']) || $caller['class'] != 'moodle_database';
+        });
+
+        $callers = array_slice($callers, 0, $level);
+
+        $text = trim(format_backtrace($callers, true));
+
+        // Convert all linebreaks to SQL comments, optionally
+        // also eating any * formatting.
+        $text = preg_replace("/(^|\n)\*?\s*/", "\n-- ", $text);
+
+        // Convert all ? to 'unknown' in the sql coment so these don't get
+        // caught by fix_sql_params().
+        $text = str_replace('?', 'unknown', $text);
+
+        // Convert tokens like :test to ::test for the same reason.
+        $text = preg_replace('/(?<!:):[a-z][a-z0-9_]*/', ':\0', $text);
+
+        return $sql . $text;
+    }
+
 
     /**
      * Ensures that limit params are numeric and positive integers, to be passed to the database.
@@ -1762,7 +1817,7 @@ abstract class moodle_database {
      * If the return ID isn't required, then this just reports success as true/false.
      * $data is an object containing needed data
      * @param string $table The database table to be inserted into
-     * @param object $dataobject A data object with values for one or more fields in the record
+     * @param object|array $dataobject A data object with values for one or more fields in the record
      * @param bool $returnid Should the id of the newly created record entry be returned? If this option is not requested then true/false is returned.
      * @param bool $bulk Set to true is multiple inserts are expected
      * @return bool|int true or new id
@@ -2006,6 +2061,29 @@ abstract class moodle_database {
     }
 
     /**
+     * Deletes records from a table using a subquery. The subquery should return a list of values
+     * in a single column, which match one field from the table being deleted.
+     *
+     * The $alias parameter must be set to the name of the single column in your subquery result
+     * (e.g. if the subquery is 'SELECT id FROM whatever', then it should be 'id'). This is not
+     * needed on most databases, but MySQL requires it.
+     *
+     * (On database where the subquery is inefficient, it is implemented differently.)
+     *
+     * @param string $table Table to delete from
+     * @param string $field Field in table to match
+     * @param string $alias Name of single column in subquery e.g. 'id'
+     * @param string $subquery Subquery that will return values of the field to delete
+     * @param array $params Parameters for subquery
+     * @throws dml_exception If there is any error
+     * @since Moodle 3.10
+     */
+    public function delete_records_subquery(string $table, string $field, string $alias,
+            string $subquery, array $params = []): void {
+        $this->delete_records_select($table, $field . ' IN (' . $subquery . ')', $params);
+    }
+
+    /**
      * Delete one or more records from a table which match a particular WHERE clause.
      *
      * @param string $table The database table to be checked against.
@@ -2104,6 +2182,17 @@ abstract class moodle_database {
      */
     public function sql_ceil($fieldname) {
         return ' CEIL(' . $fieldname . ')';
+    }
+
+    /**
+     * Return SQL for casting to char of given field/expression. Default implementation performs implicit cast using
+     * concatenation with an empty string
+     *
+     * @param string $field Table field or SQL expression to be cast
+     * @return string
+     */
+    public function sql_cast_to_char(string $field): string {
+        return $this->sql_concat("''", $field);
     }
 
     /**
@@ -2242,6 +2331,16 @@ abstract class moodle_database {
     public abstract function sql_concat_join($separator="' '", $elements=array());
 
     /**
+     * Return SQL for performing group concatenation on given field/expression
+     *
+     * @param string $field Table field or SQL expression to be concatenated
+     * @param string $separator The separator desired between each concatetated field
+     * @param string $sort Ordering of the concatenated field
+     * @return string
+     */
+    public abstract function sql_group_concat(string $field, string $separator = ', ', string $sort = ''): string;
+
+    /**
      * Returns the proper SQL (for the dbms in use) to concatenate $firstname and $lastname
      *
      * @todo MDL-31233 This may not be needed here.
@@ -2267,6 +2366,19 @@ abstract class moodle_database {
      */
     public function sql_order_by_text($fieldname, $numchars=32) {
         return $fieldname;
+    }
+
+    /**
+     * Returns the SQL text to be used to order by columns, standardising the return
+     * pattern of null values across database types to sort nulls first when ascending
+     * and last when descending.
+     *
+     * @param string $fieldname The name of the field we need to sort by.
+     * @param int $sort An order to sort the results in.
+     * @return string The piece of SQL code to be used in your statement.
+     */
+    public function sql_order_by_null(string $fieldname, int $sort = SORT_ASC): string {
+        return $fieldname . ' ' . ($sort == SORT_ASC ? 'ASC' : 'DESC');
     }
 
     /**
@@ -2414,6 +2526,30 @@ abstract class moodle_database {
      * @return string or empty if not supported
      */
     public function sql_regex($positivematch = true, $casesensitive = false) {
+        return '';
+    }
+
+    /**
+     * Returns the word-beginning boundary marker if this database driver supports regex syntax when searching.
+     * @return string The word-beginning boundary marker. Otherwise, an empty string.
+     */
+    public function sql_regex_get_word_beginning_boundary_marker() {
+        if ($this->sql_regex_supported()) {
+            return '[[:<:]]';
+        }
+
+        return '';
+    }
+
+    /**
+     * Returns the word-end boundary marker if this database driver supports regex syntax when searching.
+     * @return string The word-end boundary marker. Otherwise, an empty string.
+     */
+    public function sql_regex_get_word_end_boundary_marker() {
+        if ($this->sql_regex_supported()) {
+            return '[[:>:]]';
+        }
+
         return '';
     }
 

@@ -15,24 +15,28 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Renderer for advanced performance monitoring
  *
  * @package     local_performance
- * @subpackage  local
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
  * @copyright   (C) 2016 onwards Valery Fremaux
  */
-defined('MOODLE_INTERNAL') || die;
 
+/**
+ * Renderer class
+ */
 class local_advancedperfs_renderer extends plugin_renderer_base {
 
-    /**
-     * A cache of slow pages records
-     */
+    /** @var A cache of slow pages records */
     protected $slowpages;
 
+    /** @var slow pages count */
     protected $slowcount;
 
+    /**
+     * UI tabs
+     */
     public function tabs($view) {
         $taburl = new moodle_url('/local/advancedperfs/report.php', array('view' => 'slowpages'));
         $rows[0][] = new tabobject('slowpages', $taburl, get_string('slowpages', 'local_advancedperfs'));
@@ -52,6 +56,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return print_tabs($rows, $view, null, null, true);
     }
 
+    /**
+     * Load data.
+     */
     public function load_data() {
         global $DB;
 
@@ -114,6 +121,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         }
     }
 
+    /**
+     * Print globals indicators.
+     */
     public function globals() {
         global $DB;
 
@@ -257,7 +267,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    // Prints a bargraph of distribution.
+    /**
+     * Prints a bargraph of distribution.
+     */
     public function time_dist_graph($qdiv = 50) {
         global $DB, $PAGE;
 
@@ -305,10 +317,15 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
-    // Prints a bargraph of distribution.
+    /**
+     * Prints a bargraph of distribution.
+     */
     public function top_url_freq_graph($qdiv = 50) {
     }
 
+    /**
+     * Prints url by memory
+     */
     public function urls_by_memory() {
         global $DB, $CFG, $PAGE;
 
@@ -354,6 +371,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     * Prints calculation time vs. used memory
+     */
     public function time_rel_memory() {
         global $DB, $CFG;
 
@@ -407,6 +427,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     * Prints calculation time vs number of users.
+     */
     public function time_rel_users() {
         global $DB, $CFG;
 
@@ -461,6 +484,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     * Prints slow pages timeline.
+     */
     public function slowp_timeline() {
 
         $this->load_data();
@@ -496,6 +522,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return local_vflibs_jqplot_print_timecurve_bars($data, $title, $htmlid, $labels, $ylabel);
     }
 
+    /**
+     * 
+     */
     public function slowp_dbratio_dist() {
         global $PAGE;
 
@@ -543,6 +572,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     *
+     */
     public function slowp_dbquery_dist() {
         global $PAGE;
 
@@ -574,6 +606,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     * Top db queries.
+     */
     public function top_dbqueries_dist() {
         global $PAGE;
 
@@ -606,6 +641,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     * Graph builder.
+     */
     protected function build_graph($dist, $bdiv, $bwidth) {
 
         // Fill null ranges.
@@ -628,6 +666,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $graph;
     }
 
+    /**
+     * Top affected users.
+     */
     public function top_affected_users() {
         global $DB, $CFG;
 
@@ -726,6 +767,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     * Users globals.
+     */
     public function users_globals() {
         global $DB;
 
@@ -792,6 +836,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     * Url y slowpage occurrences.
+     */
     public function url_ranking_by_occurrence() {
         global $CFG, $PAGE;
 
@@ -844,10 +891,16 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
 
     }
 
+    /**
+     * Do we have slow pages ?
+     */
     public function is_empty() {
         return empty($this->slowpages);
     }
 
+    /**
+     * Memory size formatter.
+     */
     protected function format_mem($memsize) {
         if ($memsize < 1024) {
             return $memsize.'b';
@@ -858,6 +911,9 @@ class local_advancedperfs_renderer extends plugin_renderer_base {
         }
     }
 
+    /**
+     * Trace buttons.
+     */
     public function tracebuttons() {
         $str = '';
         $buttonurl = new moodle_url('/local/advancedperfs/trace.php', array('what' => 'clear', 'sesskey' => sesskey()));

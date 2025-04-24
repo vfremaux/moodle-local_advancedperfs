@@ -42,3 +42,12 @@ function local_advancedperfs_disable() {
 function local_advancedperfs_enabled() {
     return get_config('local_advancedperfs', 'enabled');
 }
+
+/**
+ * Enable devuser debug
+ */
+function local_advancedperfs_after_require_login() {
+    global $CFG;
+    include_once($CFG->dirroot.'/local/advancedperfs/debugtools.php');
+    debug_set_for_developers();
+}

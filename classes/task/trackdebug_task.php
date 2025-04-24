@@ -47,9 +47,12 @@ class trackdebug_task extends \core\task\scheduled_task {
 
         $config = get_config('local_advancedperfs');
 
-        $lastdebugchange = $DB->get_record_select('config_log', " plugin IS NULL and name = 'debug' ", array(), 'id, MAX(timemodified), name, value, oldvalue');
+        if ($config->debugreleaseafter == 0) {
+            return;
+        }
 
-        if (($CFG->debug >= $config->debugreleasethreshold) && ($lastdebugchange->timemodified < (time() - HOURSECS * $config->canceldebugafter))) {
+        $lastdebugchange = $DB->get_record_select('config_log', " plugin IS NULL and name = 'debug' ", array(), 'id, MAX(timemodified), name, value, oldvalue');
+        if (($CFG->debug >= $config->debugreleasethreshold) && ($lastdebugchange->timemodified < (time() - HOURSECS * $config->debugreleaseafter))) {
             $oldddebug = get_config('core', 'debug');
             $oldddebugdisplay = get_config('core', 'debugdisplay');
             set_config('debug', $config->debugreleasevalue);
@@ -60,11 +63,12 @@ class trackdebug_task extends \core\task\scheduled_task {
             add_to_config_log('debug', $olddebug, $config->debugreleasevalue, 'core');
             add_to_config_log('debugdisplay', $olddebugdisplay, $config->debugdisplayreleasevalue, 'core');
 
-            if (!empty($config->debugnotifyrelease)) {
+            if (!empty($config->debugnotifyrelease) &&
+                    ($olddebug != $config->debugreleasevalue)) {
                 $a = get_admin();
 
                 $notification = "Moodle AdvancedPerfs TrackDebug monitor\n\n";
-                $notification .= 'Debug mode is at '.$olddebug.' for at least '.$config->canceldebugafter." hours\n\n";
+                $notification .= 'Debug mode is at '.$olddebug.' for at least '.$config->debugreleaseafter." hours\n\n";
                 $notification .= 'Passing from '.$oldddebug.' to '.$config->debugreleasevalue;
                 email_to_user($a, $a, '['.$SITE->shortname.'] Releasing debug mode ', $notification);
             }

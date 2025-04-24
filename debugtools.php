@@ -15,20 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * This file contains a set of usefull debug tools for production.
  *
  * @package     local_advancedperfs
- * @subpackage  local
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
- * @version     Moodle 2.x
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
  * @copyright   (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
- *
- * this file contains a set of usefull debug tools for production
  *
  * used to very locally examining data structures.
  *
  * functions should all start with the debug_ prefix.
  */
+
 if (!defined('MOODLE_EARLY_INTERNAL')) {
     defined('MOODLE_INTERNAL') || die('');
 }
@@ -39,8 +37,35 @@ define('TRACE_DEBUG', 5); // Debug are debug time notices that should be burried
 define('TRACE_DATA', 8); // Data level is when requiring to see data structures content.
 define('TRACE_DEBUG_FINE', 10); // Debug fine are control points we want to keep when code is refactored and debug needs to be reactivated.
 
-require_once($CFG->dirroot.'/local/advancedperfs/extra/extralib.php');
+// Helpers collide with native functions of moodle.
+define('KINT_SKIP_HELPERS', true);
 
+require_once($CFG->dirroot.'/local/advancedperfs/extra/extralib.php');
+require_once($CFG->dirroot.'/local/advancedperfs/extra/kint.phar');
+
+use Kint\Kint;
+
+/**
+ * this is an early function that needs to be called as soon as possible.
+ */
+function debug_set_for_developers() {
+    global $CFG, $USER;
+
+    $config = get_config('local_advancedperfs');
+    if (!empty($config->devdebuglevel)) {
+        $devusers = preg_split("/[\s,]+/", $config->devusers);
+        if (in_array($USER->id, $devusers)) {
+            $CFG->debug = $config->devdebuglevel;
+            $CFG->debugdisplay = true;
+        }
+    }
+}
+
+/**
+ * Print an object of a message for a specific user.
+ * @param mixed $userorid
+ * @param mixed $text
+ */
 function debug_print_for_user($userorid, $text) {
     global $USER;
 
@@ -76,6 +101,7 @@ function debug_print_for_user($userorid, $text) {
  * initializes perf measurement globals
  * this function MUST be called before any other performance related function
  * in the Moodle code.
+ * @param int $userid 
  */
 function debug_print_user_info($userid) {
     global $USER;
@@ -88,6 +114,9 @@ function debug_print_user_info($userid) {
     }
 }
 
+/**
+ * param int $userid
+ */
 function debug_print_user_access($userid) {
     global $USER, $DB;
 
@@ -118,7 +147,8 @@ function debug_print_user_access($userid) {
 
 /**
  * tracks one or more capability cascade
- *
+ * @param int $userid
+ * @param mixed $capnames
  */
 function debug_track_capabilities($userid, $capnames) {
     global $USER, $DB;
@@ -271,7 +301,7 @@ function debug_trace($str, $tracelevel = TRACE_NOTICE, $label = '', $backtracele
     $tracelabels = optional_param('debuglabel', false, PARAM_TEXT);
     if (!empty($tracelabels)) {
         if ($tracelabels = '*') {
-            // * means : pass all EXCEPT labelized trace calls
+            // Options: * means : pass all EXCEPT labelized trace calls.
             if (!empty($label)) {
                 return;
             }
@@ -314,8 +344,14 @@ function debug_trace($str, $tracelevel = TRACE_NOTICE, $label = '', $backtracele
     $bt = debug_backtrace();
     for ($i = 0; $i < $backtracelevel; $i++) {
         $caller = array_shift($bt);
+        if ($caller) {
+            $callers[] = $caller;
+        }
     }
-    $location = $caller['file'].' § '.$caller['line'];
+    $location = '';
+    foreach ($callers as $caller) {
+        $location .= $caller['file'].' § '.$caller['line']."\n";
+    }
 
     $str = $location."\n".$str;
     if (!empty($CFG->traceindent)) {
@@ -332,6 +368,12 @@ function debug_trace($str, $tracelevel = TRACE_NOTICE, $label = '', $backtracele
     }
 }
 
+/**
+ * debug trace sql
+ * @param string $sql
+ * @param int $tracelevel
+ * @param array $params
+ */
 function debug_trace_sql($sql, $params, $tracelevel) {
     global $DB;
 
@@ -340,7 +382,7 @@ function debug_trace_sql($sql, $params, $tracelevel) {
     if (empty($params)) {
         debug_trace($sql);
     }
-    // ok, we have verified sql statement with ? and correct number of params
+    // Ok, we have verified sql statement with ? and correct number of params.
     $parts = array_reverse(explode('?', $sql));
     $return = array_pop($parts);
     foreach ($params as $param) {
@@ -349,11 +391,11 @@ function debug_trace_sql($sql, $params, $tracelevel) {
         } else if (is_null($param)) {
             $return .= 'NULL';
         } else if (is_number($param)) {
-            $return .= "'".$param."'"; // we have to always use strings because mysql is using weird automatic int casting
+            // We have to always use strings because mysql is using weird automatic int casting.
+            $return .= "'".$param."'";
         } else if (is_float($param)) {
             $return .= $param;
         } else {
-            // $param = mysqli_real_escape_string($cnx, $param);
             $return .= "'$param'";
         }
         $return .= array_pop($parts);
@@ -363,6 +405,7 @@ function debug_trace_sql($sql, $params, $tracelevel) {
 
 /**
  * write to the trace
+ * @param object $var
  */
 function debug_dump($var) {
     global $CFG;
@@ -383,12 +426,18 @@ define('BACKTRACE_FUNCNAME', 1);
 define('BACKTRACE_FUNCARGS', 2);
 define('BACKTRACE_FUNCRETURN', 4);
 
+/**
+ * @param string $options
+ */
 function debug_print_clean_backtrace($options = BACKTRACE_FUNCNAME) {
     echo '<pre>';
     debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
     echo '</pre>';
 }
 
+/**
+ * @param string $msg
+ */
 function debug_trace_clean_backtrace($msg = '') {
     ob_start();
     debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
@@ -397,6 +446,13 @@ function debug_trace_clean_backtrace($msg = '') {
     return $msg."\n".$backtrace;
 }
 
+/**
+ * Send some report to administrator.
+ * @param string $title
+ * @param string $msg
+ * @param string $file
+ * @param string $line
+ */
 function debug_send_report_admin($title, $msg = '', $file = 'unknown', $line = 'unknown') {
     global $DB, $SITE;
 
@@ -411,12 +467,28 @@ function debug_send_report_admin($title, $msg = '', $file = 'unknown', $line = '
     email_to_user($admin, $admin, $subject, $message, $message);
 }
 
-function debug_print_object_nr($object, $depth = 1) {
+/**
+ * Print an object structure down to some nesting level
+ * @param object $object
+ * @param int $depth
+ * @param bool $return if false, prints result.
+ */
+/*
+function debug_print_object_nr($object, $depth = 1, $return = false) {
     static $currentdepth = 1;
     static $indent = '';
 
+    $str = '';
+
     if (is_object($object)) {
-        $members = get_object_vars($object);
+        $members = [];
+        $reflect = new ReflectionClass($object);
+        $props   = $reflect->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED);
+        foreach ($props as $p) {
+            $p->setAccessible(true);
+            $members[$p->getName()] = $p->getValue($object);
+        }
+
         $objectclass = get_class($object);
     } else {
         if (is_array($object)) {
@@ -424,126 +496,94 @@ function debug_print_object_nr($object, $depth = 1) {
             $members = $object;
         } else {
             if (is_string($object)) {
-                echo "<pre>String: { $object } </pre><br/>";
+                if ($currentdepth == 1) {
+                    $str .= "\n<pre>\n\n\n\n\n\n";
+                }
+                echo $indent."String: { $object }";
+                if ($currentdepth == 1) {
+                    $str .= "\n</pre>";
+                }
             } else {
-                echo "<pre>Scalar: { $object } </pre><br/>";
+                if ($currentdepth == 1) {
+                    $str .= "\n<pre>\n\n\n\n\n\n";
+                }
+                $str .= $indent."Scalar: { $object }";
+                if ($currentdepth == 1) {
+                    $str .= "\n</pre>";
+                }
             }
             return;
         }
     }
 
     if ($currentdepth == 1) {
-        echo '<pre>';
+        $str .= "\n<pre>\n\n\n\n\n\n";
     }
 
-    echo $indent.$objectclass."{\n";
+    $str .= $objectclass." {\n";
     $indent = $indent."\t";
+    ksort($members);
     foreach ($members as $k => $m) {
         if (is_object($m)) {
             if ($depth > $currentdepth) {
                 $currentdepth++;
-                echo $indent."$k : ";
-                debug_print_object_nr($m, $depth);
+                $str .= $indent."$k : ";
+                $str .= debug_print_object_nr($m, $depth, true);
+                $str .= "\n";
                 $currentdepth--;
             } else {
-                echo $indent."$k : [Object]\n";
+                $str .= $indent."$k : [Object]\n";
             }
         } else if (is_array($m)) {
             if ($depth > $currentdepth) {
                 $currentdepth++;
-                echo $indent."$k : ";
-                debug_print_object_nr($m, $depth);
+                $str .= $indent."$k : ";
+                $str .= debug_print_object_nr($m, $depth, true);
+                $str .= "\n";
                 $currentdepth--;
             } else {
-                echo $indent."$k : [Array]\n";
+                $str .= $indent."$k : [Array]\n";
             }
         } else {
-            echo $indent."$k : $m \n";
+            $str .= $indent."$k : $m \n";
         }
     }
-    $indent = chop($indent);
-    echo $indent."}\n";
+    $indent = substr($indent, 0, -1);
+    $str .= $indent."}\n";
     if ($currentdepth == 1) {
-        echo '</pre>';
+        $str .= "\n</pre>\n";
     }
+
+    if ($return) {
+        return $str;
+    }
+    echo $str;
+}
+*/
+function debug_print_object_nr($object, $depth = 7, $return = false) {
+
+    if ($depth > 4) {
+        raise_memory_limit(MEMORY_EXTRA);
+    }
+
+    Kint::$mode_default = Kint::MODE_RICH;
+    Kint::$depth_limit = $depth;
+    Kint::$return = $return;
+
+    return Kint::dump($object);
 }
 
+/**
+ * Print object substitute.
+ * @param object $object
+ * @param string $file
+ * @param string $line
+ */
 function debug_debug_print_object($object, $file = __FILE__, $line = __LINE__) {
     echo '<pre>';
     echo "Print location : $file § $line";
     echo '</pre>';
     debug_print_object($object);
-}
-
-/**
- * This function catches debugusers from config and activates the debug mode for those users.
- * It should be called at quite soonest point in the page to toggle debug mode on if required.
- */
-function debug_catch_users() {
-    global $CFG, $USER, $debugcause, $PAGE, $DB;
-
-    // Ensure we have a database.
-    if (empty($DB)) {
-        return false;
-    }
-
-    if (!$tables = $DB->get_tables(false) ) {    // No tables yet at all.
-        return false;
-
-    } else {
-        // Check for missing main tables.
-        // Some tables used in 1.9 and 2.0, preferable something from the start and end of install.xml.
-        $mtables = array('config', 'course', 'groupings');
-        foreach ($mtables as $mtable) {
-            if (!in_array($mtable, $tables)) {
-                return false;
-            }
-        }
-    }
-
-    // Need filter this pages or settings deadloops appear.
-    if ('admin-settings' == @$PAGE->pagetype) {
-        return;
-    }
-
-    if (!empty($CFG->debugusers)) {
-        $debugusers = explode(',', $CFG->debugusers);
-        if (in_array($USER->id, $debugusers)) {
-            $CFG->debug = DEBUG_DEVELOPER;
-            $CFG->debugdisplay = true;
-            $debugcause = 'Debug User Match';
-            return;
-        }
-    }
-
-    if (!empty($CFG->debugfromips) && !defined('CLI_SCRIPT')) {
-        $debugips = explode(',', $CFG->debugfromips);
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $realip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } else {
-            $realip = $_SERVER['REMOTE_ADDR'];
-        }
-        if (in_array($realip, $debugips)) {
-            $CFG->debug = DEBUG_DEVELOPER;
-            $CFG->debugdisplay = true;
-            $debugcause = 'Debug IP Match';
-            return;
-        }
-    }
-
-    // Early calls of this function may not have sufficiant moodle libraries loaded.
-    if (function_exists('has_capability')) {
-        if (has_capability('local/advancedperfs:hasdebugrole', context_system::instance(), $USER->id, false)) {
-            $debugcause = 'Debug Capability Match';
-            $CFG->debug = DEBUG_DEVELOPER;
-            $CFG->debugdisplay = true;
-            return;
-        }
-    }
-
-    if (empty($debugcause) && !empty($CFG->debugdisplay)) {
-        $debugcause = 'Standard Debug Mode';
-    }
 }
 
 /**
@@ -569,6 +609,11 @@ function debug_blocks() {
     }
 }
 
+/**
+ * 
+ * @param string $sql
+ * @param array $allparams
+ */
 function debug_trace_block_query($sql, $allparams) {
     foreach ($allparams as $key => $value) {
         if (is_numeric($value)) {

@@ -16,6 +16,8 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+require_once(__DIR__.'/debugtools.php');
+
 if ($hassiteconfig) {
     $settings = new admin_settingpage('localsettingtimebenches', get_string('pluginname', 'local_advancedperfs'));
 
@@ -113,8 +115,28 @@ if ($hassiteconfig) {
     $traceurl = new moodle_url('/local/advancedperfs/trace.php');
     $ADMIN->add('development', new admin_externalpage('trace', $label, $traceurl, 'moodle/site:config'));
 
+    $key = 'local_advancedperfs/devdebuglevel';
+    $label = get_string('configdevdebuglevel', 'local_advancedperfs');
+    $desc = get_string('configdevdebuglevel_desc', 'local_advancedperfs');
+    $default = DEBUG_ALL;
+    $debugoptions = array(DEBUG_NONE      => get_string('debugnone', 'admin'),
+            DEBUG_MINIMAL   => get_string('debugminimal', 'admin'),
+            DEBUG_NORMAL    => get_string('debugnormal', 'admin'),
+            DEBUG_ALL       => get_string('debugall', 'admin'),
+            DEBUG_DEVELOPER => get_string('debugdeveloper', 'admin'));
+
+    $settings->add(new admin_setting_configselect($key, $label, $desc, $default, $debugoptions));
+
+    $key = 'local_advancedperfs/devusers';
+    $label = get_string('configdevusers', 'local_advancedperfs');
+    $desc = get_string('configdevusers_desc', 'local_advancedperfs');
+    $default = '';
+
+    $settings->add(new admin_setting_configtext($key, $label, $desc, $default));
+
+
     $traceurl = new moodle_url('/local/advancedperfs/trace.php');
-    $html = '<a href="'.$traceurl.'">'.get_string('seetrace', 'local_advancedperfs').'</a>';
+    $html = '<a name="tracesettings" href="'.$traceurl.'">'.get_string('seetrace', 'local_advancedperfs').'</a>';
     $settings->add(new admin_setting_heading('tracehdr', get_string('trace', 'local_advancedperfs'), $html));
 
     $key = 'trace';

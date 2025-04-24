@@ -428,6 +428,10 @@ class performance_monitor {
     public function print_report($force = false) {
         global $CFG, $USER, $OUTPUT, $PAGE, $DB;
 
+        if ($CFG->debug < DEBUG_NORMAL) {
+            return '';
+        }
+
         // Be carefull ! 'dbcalls' patched category is inside "get_records" !
         if (empty($this->staticconfig)) {
             $initialized = $this->init_config();
@@ -501,7 +505,7 @@ class performance_monitor {
                                    "<span id=\"{$catname}_mean\">$mean</span>", $occ);
         }
 
-        $template = new StdClass;
+        $template = new StdClass();
         $attrs = array('id' => 'perf-panel-report');
         $template->perfpix = $OUTPUT->pix_icon('viewdetails', '', 'local_advancedperfs', $attrs);
 

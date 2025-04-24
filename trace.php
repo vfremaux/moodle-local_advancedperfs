@@ -62,7 +62,7 @@ $strcodes = [
 
 echo $OUTPUT->notification(get_string('configtraceout', 'local_advancedperfs').' '.get_string($strcodes[$config->traceout], 'local_advancedperfs'), 'info');
 
-$settingsurl = new moodle_url('/admin/settings.php', ['section' => 'localsettingtimebenches']);
+$settingsurl = new moodle_url('/admin/settings.php', ['section' => 'localsettingtimebenches'], 'tracesettings');
 echo '<div style="text-align: right"><a href="'.$settingsurl.'">'.get_string('settings', 'local_advancedperfs').'</a></div>';
 
 // Report global indicators.
@@ -72,7 +72,8 @@ if (!is_file($tracelocation)) {
     echo $OUTPUT->notification(get_string('notracefile', 'local_advancedperfs'), 'error');
 } else {
     $tracesize = filesize($tracelocation);
-    if ($tracesize > 10 * 1024 * 1024) { // Originally 2M max.
+    if ($tracesize > 100 * 1024 * 1024) {
+        // Originally 2M max.
         echo $OUTPUT->notification(get_string('tracetoobig', 'local_advancedperfs'));
         $buttonurl = new moodle_url('/local/advancedperfs/trace.php', array('what' => 'clear', 'sesskey' => sesskey()));
         echo $OUTPUT->single_button($buttonurl, get_string('clear', 'local_advancedperfs'));
