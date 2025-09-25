@@ -495,8 +495,8 @@ class performance_monitor {
                 $catname = $cat;
             }
 
-            $locations = str_replace($CFG->dirroot, '', @$this->perfs[$cat]->infile).':$'.@$this->perfs[$cat]->inline;
-            $locations .= '<br/>'.@$this->perfs[$cat]->outfile.':$'.@$this->perfs[$cat]->outline;
+            $locations = str_replace($CFG->dirroot, '', $this->perfs[$cat]->infile ?? '').':$'.($this->perfs[$cat]->inline ?? '');
+            $locations .= '<br/>'.($this->perfs[$cat]->outfile ?? '').':$'.($this->perfs[$cat]->outline ?? '');
 
             $table->data[] = array($catname,
                                    "<span id=\"{$catname}_total\">$total</span>",
