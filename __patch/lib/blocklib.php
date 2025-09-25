@@ -1233,6 +1233,12 @@ class block_manager {
      */
     public function ensure_content_created($region, $output) {
         $this->ensure_instances_exist($region);
+
+        if (!has_capability('moodle/block:view', $this->page->context) ) {
+            $this->visibleblockcontent[$region] = [];
+            return;
+        }
+
         if (!array_key_exists($region, $this->visibleblockcontent)) {
             $contents = array();
             if (array_key_exists($region, $this->extracontent)) {
@@ -1284,8 +1290,10 @@ class block_manager {
         if ($this->page->user_can_edit_blocks() || $block->user_can_edit()) {
             // Edit config icon - always show - needed for positioning UI.
             $str = new lang_string('configureblock', 'block', $blocktitle);
+            $editactionurl = new moodle_url($actionurl, ['bui_editid' => $block->instance->id]);
+            $editactionurl->remove_params(['sesskey']);
             $controls[] = new action_menu_link_secondary(
-                new moodle_url($actionurl, array('bui_editid' => $block->instance->id)),
+                $editactionurl,
                 new pix_icon('t/edit', $str, 'moodle', array('class' => 'iconsmall', 'title' => '')),
                 $str,
                 array('class' => 'editing_edit')
@@ -1348,8 +1356,10 @@ class block_manager {
         if ($this->user_can_delete_block($block)) {
             // Delete icon.
             $str = new lang_string('deleteblock', 'block', $blocktitle);
+            $deleteactionurl = new moodle_url($actionurl, ['bui_deleteid' => $block->instance->id]);
+            $deleteactionurl->remove_params(['sesskey']);
             $controls[] = new action_menu_link_secondary(
-                new moodle_url($actionurl, array('bui_deleteid' => $block->instance->id)),
+                $deleteactionurl,
                 new pix_icon('t/delete', $str, 'moodle', array('class' => 'iconsmall', 'title' => '')),
                 $str,
                 array('class' => 'editing_delete')
@@ -1499,7 +1509,6 @@ class block_manager {
             return false;
         }
 
-        require_sesskey();
         $block = $this->page->blocks->find_instance($blockid);
         if (!$this->user_can_delete_block($block)) {
             throw new moodle_exception('nopermissions', '', $this->page->url->out(), get_string('deleteablock'));
@@ -1565,6 +1574,8 @@ class block_manager {
             // Make sure that nothing else happens after we have displayed this form.
             exit;
         } else {
+            require_sesskey();
+
             blocks_delete_instance($block->instance);
             // bui_deleteid and bui_confirm should not be in the PAGE url.
             $this->page->ensure_param_not_in_url('bui_deleteid');
@@ -1618,7 +1629,6 @@ class block_manager {
             return false;
         }
 
-        require_sesskey();
         require_once($CFG->dirroot . '/blocks/edit_form.php');
 
         $block = $this->find_instance($blockid);

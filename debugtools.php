@@ -468,13 +468,12 @@ function debug_send_report_admin($title, $msg = '', $file = 'unknown', $line = '
 }
 
 /**
- * Print an object structure down to some nesting level
+ * Trace an object structure down to some nesting level
  * @param object $object
  * @param int $depth
  * @param bool $return if false, prints result.
  */
-/*
-function debug_print_object_nr($object, $depth = 1, $return = false) {
+function debug_trace_object_nr($object, $depth = 1, $return = false) {
     static $currentdepth = 1;
     static $indent = '';
 
@@ -528,7 +527,7 @@ function debug_print_object_nr($object, $depth = 1, $return = false) {
             if ($depth > $currentdepth) {
                 $currentdepth++;
                 $str .= $indent."$k : ";
-                $str .= debug_print_object_nr($m, $depth, true);
+                $str .= debug_trace_object_nr($m, $depth, true);
                 $str .= "\n";
                 $currentdepth--;
             } else {
@@ -538,7 +537,7 @@ function debug_print_object_nr($object, $depth = 1, $return = false) {
             if ($depth > $currentdepth) {
                 $currentdepth++;
                 $str .= $indent."$k : ";
-                $str .= debug_print_object_nr($m, $depth, true);
+                $str .= debug_trace_object_nr($m, $depth, true);
                 $str .= "\n";
                 $currentdepth--;
             } else {
@@ -557,9 +556,15 @@ function debug_print_object_nr($object, $depth = 1, $return = false) {
     if ($return) {
         return $str;
     }
-    echo $str;
+    debug_trace($str);
 }
-*/
+
+/**
+ * Print an object structure down to some nesting level
+ * @param object $object
+ * @param int $depth
+ * @param bool $return if false, prints result.
+ */
 function debug_print_object_nr($object, $depth = 7, $return = false) {
 
     if ($depth > 4) {
