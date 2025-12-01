@@ -630,3 +630,85 @@ function debug_trace_block_query($sql, $allparams) {
     $sql = preg_replace('/\\{(.*?)\\}/', 'mdl_\\1', $sql);
     debug_trace($sql);
 }
+
+function debug_trace_preformat_sql($sql, $params, $forcenamedparams = false) {
+    global $CFG;
+
+    $sql = preg_replace('/\{(\w+?)\}/', "{$CFG->prefix}\\1", $sql);
+
+    if (preg_match('/\:(\w*?)/', $sql)) {
+        $namedparams = true;
+    } else {
+        $namedparams = false;
+    }
+
+    if ($namedparams || $forcednamedparams) {
+        foreach ($params as $key => $value) {
+            if (is_numeric($value)) {
+                $sql = preg_replace("/\:$key/", $value, $sql);
+            } else {
+                $sql = preg_replace("/\:$key/", "\"{$value}\"", $sql);
+            }
+        }
+    } else {
+        // Replace one by one the ? with params.
+        $parts = explode('?', $sql);
+        $outsql = array_shift($parts);
+        $i = 0;
+        while ($next = array_shift($parts)) {
+            if (is_numeric($params[$i] ?? '')) {
+                $outsql .= ($params[$i] ?? '?').$next;
+            } else {
+                $outsql .= '"'.($params[$i] ?? '?').'"'.$next;
+            }
+            $i++;
+        }
+        $sql = $outsql;
+    }
+
+    return $sql;
+}
+
+/**
+ * Print string with location reference.
+ * @param object $str
+ * @param string $tracedeepness backtrace deepness
+ * @param string $fullbt prints a complete backtrace
+ */
+function debug_print($str, $tracedeepness = 2, $fullbt = false) {
+
+    $bt = debug_backtrace();
+
+    if ($fullbt) {
+        echo "<pre>Debug: ".htmlentities($str)."\n</pre>";
+        echo '<pre>';
+        print_r($bt);
+        echo '</pre>';
+        return;
+    }
+
+    $caller = array_shift($bt); // First is here !
+    $locations = [];
+    for ($i = 0 ; $i < $tracedeepness ; $i++) {
+        $caller = array_shift($bt);
+        if (empty($caller)) {
+            $locations[] = '';
+        } else {
+            $loc = '';
+            if (!empty($caller['file'])) {
+                $loc = "Function: ".$caller['function']." Location: ".$caller['file'].'§'.$caller['line']."\n";
+            } else {
+                $loc = "Function: ".$caller['function']."\n";
+            }
+        }
+        $locations[] = $loc;
+    }
+
+    echo "<pre>Debug: ".htmlentities($str)."\n</pre>";
+    echo "<pre style=\"font-size:0.9em;padding-left:10px;line-height: 10px\">";
+    foreach($locations as $loc) {
+        echo "> ".$loc."\n";
+    }
+    echo "\n</pre>";
+
+}

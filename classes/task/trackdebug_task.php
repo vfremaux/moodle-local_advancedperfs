@@ -51,8 +51,10 @@ class trackdebug_task extends \core\task\scheduled_task {
             return;
         }
 
-        $lastdebugchange = $DB->get_record_select('config_log', " plugin IS NULL and name = 'debug' ", [], 'id, MAX(timemodified), name, value, oldvalue');
-        if (($CFG->debug >= $config->debugreleasethreshold) && ($lastdebugchange->timemodified < (time() - (HOURSECS * $config->debugreleaseafter)))) {
+        $lastdebugchange = $DB->get_record_select('config_log', " plugin ='core' and name = 'debug' ", [], 'id, MAX(timemodified), name, value, oldvalue');
+        $isoverlevel = $CFG->debug >= $config->debugreleasethreshold;
+        $isovertime = $lastdebugchange->timemodified < (time() - ((int) HOURSECS * $config->debugreleaseafter));
+        if ($isoverlevel && $isoverime) {
             $oldddebug = get_config('core', 'debug');
             $oldddebugdisplay = get_config('core', 'debugdisplay');
             set_config('debug', $config->debugreleasevalue);
